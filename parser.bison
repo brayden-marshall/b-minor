@@ -1,6 +1,3 @@
-%{
-%}
-
 // keywords
 %token TOKEN_KEYWORD_ARRAY
 %token TOKEN_KEYWORD_BOOLEAN
@@ -95,3 +92,4 @@ type : TOKEN_KEYWORD_INTEGER
      ;
 
 %%
+

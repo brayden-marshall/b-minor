@@ -1,0 +1,7 @@
+*.o
+bin/
+
+scanner.c
+parser.c
+parser.h
+parser.output

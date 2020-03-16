@@ -4,7 +4,7 @@
 typedef enum {
     TYPE_VOID,
     TYPE_BOOLEAN,
-    TYPE_CHARACTER,
+    TYPE_CHAR,
     TYPE_INTEGER,
     TYPE_STRING,
     TYPE_ARRAY,
@@ -17,18 +17,8 @@ struct type {
     struct param_list* params;
 };
 
-struct param_list {
-    char* name;
-    struct type* type;
-    struct param_list* next;
-};
-
 struct type* type_create(type_t kind);
 
 struct type* type_create_array(struct type* subtype);
     
-struct param_list* param_list_create(
-    char* name, struct type* type, struct param_list* next
-);
-
 #endif
