@@ -2,7 +2,7 @@
 #define EXPR_H
 
 typedef enum {
-    EXPR_ADD,
+    EXPR_ADD = 0,
     EXPR_SUB,
     EXPR_MUL,
     EXPR_DIV,

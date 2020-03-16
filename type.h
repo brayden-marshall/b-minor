@@ -2,7 +2,7 @@
 #define TYPE_H
 
 typedef enum {
-    TYPE_VOID,
+    TYPE_VOID = 0,
     TYPE_BOOLEAN,
     TYPE_CHAR,
     TYPE_INTEGER,

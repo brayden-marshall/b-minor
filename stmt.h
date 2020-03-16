@@ -2,7 +2,7 @@
 #define STMT_H
 
 typedef enum {
-    STMT_DECL,
+    STMT_DECL = 0,
     STMT_EXPR,
     STMT_IF_ELSE,
     STMT_FOR,

@@ -1,3 +1,5 @@
+#include <stdlib.h>
+
 #include "param_list.h"
 
 struct param_list* param_list_create(

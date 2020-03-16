@@ -1,22 +1,3 @@
-%{
-#include <stdio.h>
-
-#include "decl.h"
-#include "expr.h"
-#include "stmt.h"
-#include "type.h"
-#include "param_list.h"
-
-int yyerror(char* str);
-
-extern char *yytext;
-extern int yylex();
-extern int yyerror(char *str);
-
-struct decl* parser_result;
-
-%}
-
 // keywords
 %token TOKEN_ARRAY
 %token TOKEN_BOOLEAN
@@ -59,6 +40,27 @@ struct decl* parser_result;
 %token TOKEN_CHAR_LITERAL
 %token TOKEN_STRING_LITERAL
 
+// other
+%token TOKEN_IDENT
+
+%{
+#include <stdio.h>
+#include <string.h>
+
+#include "decl.h"
+#include "expr.h"
+#include "stmt.h"
+#include "type.h"
+#include "param_list.h"
+
+extern char *yytext;
+extern int yylex();
+extern int yyerror(char *str);
+
+struct decl* parser_result;
+
+%}
+
 %union {
     struct decl* decl;
     struct stmt* stmt;
@@ -71,8 +73,8 @@ struct decl* parser_result;
 }
 
 %type <decl> program decl_list decl /* more */
-%type <stmt> stmt_list stmt /* more */
-%type <expr> expr /* more */
+//%type <stmt> stmt_list stmt /* more */
+//%type <expr> expr /* more */
 %type <type> type /* more */
 
 /* more types */
@@ -86,37 +88,36 @@ program : decl_list
         ;
 
 decl : name TOKEN_COLON type TOKEN_SEMI
-       { $$ = decl_create($1, $3, 0, 0, 0); }
-     | name TOKEN_COLON type TOKEN_ASSIGN expr TOKEN_SEMI
-       { $$ = decl_create($1, $3, $5, 0, 0); }
-     | /* more cases here */
-
+       { printf("name is %s. type.kind is %d, yytext is %s\n", $1, $3->kind, yytext); $$ = decl_create($1, $3, 0, 0, 0); }
+     //| name TOKEN_COLON type TOKEN_ASSIGN expr TOKEN_SEMI
+     //  { $$ = decl_create($1, $3, $5, 0, 0); }
+     //| /* more cases here */
      ;
-
 
 decl_list : decl decl_list
-            { $$ = $1; $1->next = $2; }
+            { printf("parsing decl. name is %s", $1->name); $$ = $1; $1->next = $2; }
           | /* epsilon */
-            { $$ = 0; }
+            { printf("decl null\n"); $$ = 0; }
           ;
 
-name : /* epsilon */
+name : TOKEN_IDENT
+       { printf("found identifier %s\n", yytext); $$ = strdup(yytext); }
      ;
 
-stmt : TOKEN_IF TOKEN_LPAREN expr TOKEN_RPAREN stmt
-       { $$ = stmt_create(STMT_IF_ELSE, 0, 0, $3, $5, 0, 0); }
-     | TOKEN_LBRACE stmt_list TOKEN_RBRACE
-       { $$ = stmt_create(STMT_BLOCK, 0, 0, 0, 0, $2, 0, 0); }
-     | /* more cases here */
-
-     ;
-
-stmt_list : stmt stmt_list
-            { $$ = $1; $1->next = $2; }
-          ;
-
-expr : /* epsilon */
-     ;
+//stmt : TOKEN_IF TOKEN_LPAREN expr TOKEN_RPAREN stmt
+//       { $$ = stmt_create(STMT_IF_ELSE, 0, 0, $3, $5, 0, 0); }
+//     | TOKEN_LBRACE stmt_list TOKEN_RBRACE
+//       { $$ = stmt_create(STMT_BLOCK, 0, 0, 0, 0, $2, 0, 0); }
+//     | /* more cases here */
+//
+//     ;
+//
+//stmt_list : stmt stmt_list
+//            { $$ = $1; $1->next = $2; }
+//          ;
+//
+//expr : /* epsilon */
+//     ;
 
 type : TOKEN_INTEGER
        { $$ = type_create(TYPE_INTEGER); }
