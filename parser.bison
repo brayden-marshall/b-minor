@@ -1,4 +1,6 @@
 %{
+#include <stdio.h>
+
 #include "decl.h"
 #include "expr.h"
 #include "stmt.h"
@@ -6,6 +8,10 @@
 #include "param_list.h"
 
 int yyerror(char* str);
+
+extern char *yytext;
+extern int yylex();
+extern int yyerror(char *str);
 
 struct decl* parser_result;
 
