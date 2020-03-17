@@ -10,12 +10,16 @@
 #include "parser.h"
 
 extern int yyparse();
-extern int yylex();
 extern struct decl* parser_result;
 
-int main() {
-    printf("B-minor parser\n");
-    printf(">> ");
+extern int yylex();
+extern FILE* yyin;
+
+int main(int argc, char** argv) {
+    if (argc != 2) {
+        printf("Require one argument: filename.\n");
+        return EXIT_FAILURE;
+    }
 
     // print out token values
     //enum yytokentype t;
@@ -23,13 +27,24 @@ int main() {
     //    printf("%d\n", t);
     //}
     
+    yyin = fopen(argv[1], "r");
+    if (!yyin) {
+        printf("Could not open file '%s'.", argv[2]);
+        return EXIT_FAILURE;
+    }
+    
     if (yyparse() == 0) {
         printf("Parse successful!\n");
-        printf("parser_result is:\n");
+        printf("Result is:\n");
         if (parser_result) {
-            printf("%s\n", parser_result->name);
-            if (parser_result->type) {
-                printf("%d\n", parser_result->type->kind);
+            struct decl* current = parser_result;
+            while (current != NULL) {
+                printf("\tname: %s\n", current->name);
+                if (current->type) {
+                    printf("\tkind: %d\n", current->type->kind);
+                }
+
+                current = current->next;
             }
         } else {
             printf("null\n");
@@ -37,6 +52,8 @@ int main() {
     } else {
         printf("Parse failed!\n");
     }
+
+    fclose(yyin);
 
     return EXIT_SUCCESS;
 }

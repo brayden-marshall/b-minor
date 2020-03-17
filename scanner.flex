@@ -11,7 +11,7 @@ IDENT       [a-zA-Z_0-9]
 
 %%
 
-[ \n\r\t]*  ;
+[ \n\r\t]*              ;
 
 ":"                     return TOKEN_COLON;
 ";"                     return TOKEN_SEMI;
@@ -20,6 +20,13 @@ IDENT       [a-zA-Z_0-9]
 "*"                     return TOKEN_MULTIPLY;
 "/"                     return TOKEN_DIVIDE;
 "="                     return TOKEN_ASSIGN;
+
+"("                     return TOKEN_LPAREN;
+")"                     return TOKEN_RPAREN;
+"["                     return TOKEN_LBRACKET;
+"]"                     return TOKEN_RBRACKET;
+"{"                     return TOKEN_LBRACE;
+"}"                     return TOKEN_RBRACE;
 
 "array"                 return TOKEN_ARRAY;
 "boolean"               return TOKEN_BOOLEAN;
@@ -41,8 +48,8 @@ IDENT       [a-zA-Z_0-9]
 {DIGIT}+                return TOKEN_INTEGER_LITERAL;
 {IDENT_START}{IDENT}*   return TOKEN_IDENT;
 
-.                       { printf("scan error.\n"); exit(1); }
+.                       { printf("scan error. bad token: %c\n", yytext[0]); }
 
 %%
 
-int yywrap() { return 0; }
+int yywrap() { return 1; }

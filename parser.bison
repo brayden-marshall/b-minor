@@ -57,7 +57,11 @@ extern char *yytext;
 extern int yylex();
 extern int yyerror(char *str);
 
+FILE* yyin;
+
 struct decl* parser_result;
+
+struct decl* decl_list_last = NULL;
 
 %}
 
@@ -84,24 +88,25 @@ struct decl* parser_result;
 %%
 
 program : decl_list
-          { parser_result = $1; }
+          { parser_result = $1; return 0; }
         ;
 
 decl : name TOKEN_COLON type TOKEN_SEMI
-       { printf("name is %s. type.kind is %d, yytext is %s\n", $1, $3->kind, yytext); $$ = decl_create($1, $3, 0, 0, 0); }
+       { $$ = decl_create($1, $3, 0, 0, 0); }
      //| name TOKEN_COLON type TOKEN_ASSIGN expr TOKEN_SEMI
      //  { $$ = decl_create($1, $3, $5, 0, 0); }
      //| /* more cases here */
      ;
 
+// FIXME: change this to use right-recursion (bison handles right-recursion better than left-recursion)
 decl_list : decl decl_list
-            { printf("parsing decl. name is %s", $1->name); $$ = $1; $1->next = $2; }
+            { $$ = $1; $1->next = $2; }
           | /* epsilon */
-            { printf("decl null\n"); $$ = 0; }
+            { $$ = NULL; }
           ;
 
 name : TOKEN_IDENT
-       { printf("found identifier %s\n", yytext); $$ = strdup(yytext); }
+       { $$ = strdup(yytext); }
      ;
 
 //stmt : TOKEN_IF TOKEN_LPAREN expr TOKEN_RPAREN stmt

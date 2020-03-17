@@ -1,0 +1,4 @@
+hello: integer;
+testinng_123: string;
+TEST_VARIABLE: integer;
+Troo_falszz: boolean;
