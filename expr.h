@@ -40,4 +40,6 @@ struct expr* expr_create_char_literal(char c);
 
 struct expr* expr_create_string_literal(const char* str);
 
+void expr_print(struct expr* e);
+
 #endif

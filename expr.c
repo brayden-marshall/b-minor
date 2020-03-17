@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdio.h>
 
 #include "expr.h"
 
@@ -41,4 +42,29 @@ struct expr* expr_create_string_literal(const char* str) {
     struct expr* e = expr_create(EXPR_STRING_LITERAL, 0, 0);
     e->string_literal = str;
     return e;
+}
+
+void expr_print(struct expr* e) {
+    if (!e) return;
+
+    expr_print(e->left);
+
+    switch (e->kind) {
+        case EXPR_CHAR_LITERAL:
+            printf("'%c'", e->integer_value);
+            break;
+        case EXPR_STRING_LITERAL:
+            printf("\"%s\"", e->string_literal);
+            break;
+        case EXPR_INTEGER_LITERAL:
+            printf("%d", e->integer_value);
+            break;
+        case EXPR_BOOLEAN_LITERAL:
+            printf("%s", e->integer_value ? "true" : "false");
+            break;
+        default:
+            break;
+    }
+
+    expr_print(e->right);
 }

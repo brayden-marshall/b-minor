@@ -39,10 +39,17 @@ int main(int argc, char** argv) {
         if (parser_result) {
             struct decl* current = parser_result;
             while (current != NULL) {
+                printf("\n");
                 printf("\tname: %s\t", current->name);
                 if (current->type) {
                     printf("kind: %d\n", current->type->kind);
                 }
+
+                printf("\t");
+                expr_print(current->value);
+                if (current->value) {
+                }
+                printf("\n");
 
                 current = current->next;
             }

@@ -3,7 +3,6 @@
 %token TOKEN_BOOLEAN
 %token TOKEN_CHAR
 %token TOKEN_ELSE
-%token TOKEN_FALSE
 %token TOKEN_FOR
 %token TOKEN_FUNCTION
 %token TOKEN_IF
@@ -11,7 +10,6 @@
 %token TOKEN_PRINT
 %token TOKEN_RETURN
 %token TOKEN_STRING
-%token TOKEN_TRUE
 %token TOKEN_VOID
 %token TOKEN_WHILE
 
@@ -35,10 +33,11 @@
 %token TOKEN_DIVIDE
 
 // literals
-%token TOKEN_BOOLEAN_LITERAL
 %token TOKEN_INTEGER_LITERAL
 %token TOKEN_CHAR_LITERAL
 %token TOKEN_STRING_LITERAL
+%token TOKEN_TRUE
+%token TOKEN_FALSE
 
 // other
 %token TOKEN_IDENT
@@ -125,7 +124,16 @@ name : TOKEN_IDENT
 expr : TOKEN_INTEGER_LITERAL
        { $$ = expr_create_integer_literal(atoi(yytext)); } 
      | TOKEN_STRING_LITERAL
-       { $$ = expr_create_string_literal(strdup(yytext)); }
+       {
+           // remove leading and trailing quotes
+           char* text = strdup(yytext+1);
+           text[strlen(text)-1] = '\0';
+           $$ = expr_create_string_literal(text);
+       }
+     | TOKEN_TRUE
+       { $$ = expr_create_boolean_literal(1); }
+     | TOKEN_FALSE
+       { $$ = expr_create_boolean_literal(0); }
      ;
 
 type : TOKEN_INTEGER
