@@ -2,3 +2,8 @@ hello: integer;
 testinng_123: string;
 TEST_VARIABLE: integer;
 Troo_falszz: boolean;
+
+hello: integer = 1221939;
+testinng_123: string = "hello there my good sirentountoehuneounoeduonthdurc";
+TEST_VARIABLE: integer;
+Troo_falszz: boolean;

@@ -46,6 +46,7 @@ IDENT       [a-zA-Z_0-9]
 
 
 {DIGIT}+                return TOKEN_INTEGER_LITERAL;
+\".*\"                  return TOKEN_STRING_LITERAL;
 {IDENT_START}{IDENT}*   return TOKEN_IDENT;
 
 .                       { printf("scan error. bad token: %c\n", yytext[0]); }

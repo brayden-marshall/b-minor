@@ -45,6 +45,7 @@
 
 %{
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "decl.h"
@@ -78,7 +79,7 @@ struct decl* decl_list_last = NULL;
 
 %type <decl> program decl_list decl /* more */
 //%type <stmt> stmt_list stmt /* more */
-//%type <expr> expr /* more */
+%type <expr> expr /* more */
 %type <type> type /* more */
 
 /* more types */
@@ -93,8 +94,8 @@ program : decl_list
 
 decl : name TOKEN_COLON type TOKEN_SEMI
        { $$ = decl_create($1, $3, 0, 0, 0); }
-     //| name TOKEN_COLON type TOKEN_ASSIGN expr TOKEN_SEMI
-     //  { $$ = decl_create($1, $3, $5, 0, 0); }
+     | name TOKEN_COLON type TOKEN_ASSIGN expr TOKEN_SEMI
+       { $$ = decl_create($1, $3, $5, 0, 0); }
      //| /* more cases here */
      ;
 
@@ -121,8 +122,11 @@ name : TOKEN_IDENT
 //            { $$ = $1; $1->next = $2; }
 //          ;
 //
-//expr : /* epsilon */
-//     ;
+expr : TOKEN_INTEGER_LITERAL
+       { $$ = expr_create_integer_literal(atoi(yytext)); } 
+     | TOKEN_STRING_LITERAL
+       { $$ = expr_create_string_literal(strdup(yytext)); }
+     ;
 
 type : TOKEN_INTEGER
        { $$ = type_create(TYPE_INTEGER); }

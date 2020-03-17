@@ -39,9 +39,9 @@ int main(int argc, char** argv) {
         if (parser_result) {
             struct decl* current = parser_result;
             while (current != NULL) {
-                printf("\tname: %s\n", current->name);
+                printf("\tname: %s\t", current->name);
                 if (current->type) {
-                    printf("\tkind: %d\n", current->type->kind);
+                    printf("kind: %d\n", current->type->kind);
                 }
 
                 current = current->next;
