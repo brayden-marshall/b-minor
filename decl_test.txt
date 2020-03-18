@@ -8,3 +8,4 @@ testinng_123: string = "hello there my good sirentountoehuneounoeduonthdurc";
 TEST_VARIABLE: integer = 179999;
 troo_falszz: boolean = true;
 falzz_troo: boolean = false;
+array_test: array [] array [] integer;

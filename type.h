@@ -20,5 +20,7 @@ struct type {
 struct type* type_create(type_t kind);
 
 struct type* type_create_array(struct type* subtype);
+
+void type_print(struct type* t);
     
 #endif

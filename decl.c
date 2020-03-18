@@ -1,6 +1,9 @@
 #include <stdlib.h>
+#include <stdio.h>
 
 #include "decl.h"
+#include "expr.h"
+#include "type.h"
 
 struct decl* decl_create(
     char* name,
@@ -16,4 +19,20 @@ struct decl* decl_create(
     d->code = code;
     d->next = next;
     return d;
+}
+
+void decl_print(struct decl* d) {
+    if (!d) return;
+
+    printf("%s: ", d->name);
+    type_print(d->type);
+    if (d->value) {
+        printf(" = ");
+        expr_print(d->value);
+    }
+
+    // TODO: print d->code
+
+    printf(";\n");
+    decl_print(d->next);
 }

@@ -37,22 +37,7 @@ int main(int argc, char** argv) {
         printf("Parse successful!\n");
         printf("Result is:\n");
         if (parser_result) {
-            struct decl* current = parser_result;
-            while (current != NULL) {
-                printf("\n");
-                printf("\tname: %s\t", current->name);
-                if (current->type) {
-                    printf("kind: %d\n", current->type->kind);
-                }
-
-                printf("\t");
-                expr_print(current->value);
-                if (current->value) {
-                }
-                printf("\n");
-
-                current = current->next;
-            }
+            decl_print(parser_result);
         } else {
             printf("null\n");
         }
