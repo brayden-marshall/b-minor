@@ -62,6 +62,18 @@ void expr_print(struct expr* e) {
         case EXPR_BOOLEAN_LITERAL:
             printf("%s", e->integer_value ? "true" : "false");
             break;
+        case EXPR_ADD:
+            printf(" + ");
+            break;
+        case EXPR_SUB:
+            printf(" - ");
+            break;
+        case EXPR_MUL:
+            printf(" * ");
+            break;
+        case EXPR_DIV:
+            printf(" / ");
+            break;
         default:
             break;
     }

@@ -1,0 +1,6 @@
+hello:      integer = 1 + 7;
+testing:    integer = 7 - 1;
+ntoeuhnto:  integer = 7 * 1;
+oteuhnth:   integer = 100 / 0;
+onudnh:     integer = -42;
+nountod:    integer = 100 * (10 - (8 + 2) / (167-1));

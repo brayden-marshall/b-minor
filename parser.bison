@@ -73,17 +73,14 @@ struct decl* decl_list_last = NULL;
 
     /* possibly more? */
 
-    char* name;
+    char* ident;
 }
 
-%type <decl> program decl_list decl /* more */
-//%type <stmt> stmt_list stmt /* more */
-%type <expr> expr /* more */
-%type <type> type /* more */
-
-/* more types */
-
-%type <name> name
+%type <decl> program decl_list decl
+//%type <stmt> stmt_list stmt
+%type <expr> expr term factor
+%type <type> type
+%type <ident> ident
 
 %%
 
@@ -91,21 +88,21 @@ program : decl_list
           { parser_result = $1; return 0; }
         ;
 
-decl : name TOKEN_COLON type TOKEN_SEMI
+decl : ident TOKEN_COLON type TOKEN_SEMI
        { $$ = decl_create($1, $3, 0, 0, 0); }
-     | name TOKEN_COLON type TOKEN_ASSIGN expr TOKEN_SEMI
+     | ident TOKEN_COLON type TOKEN_ASSIGN expr TOKEN_SEMI
        { $$ = decl_create($1, $3, $5, 0, 0); }
      //| /* more cases here */
      ;
 
-// FIXME: change this to use right-recursion (bison handles right-recursion better than left-recursion)
+// FIXME: change this to use left-recursion (bison handles left-recursion better than right-recursion)
 decl_list : decl decl_list
             { $$ = $1; $1->next = $2; }
           | /* epsilon */
             { $$ = NULL; }
           ;
 
-name : TOKEN_IDENT
+ident : TOKEN_IDENT
        { $$ = strdup(yytext); }
      ;
 
@@ -121,20 +118,43 @@ name : TOKEN_IDENT
 //            { $$ = $1; $1->next = $2; }
 //          ;
 //
-expr : TOKEN_INTEGER_LITERAL
-       { $$ = expr_create_integer_literal(atoi(yytext)); } 
-     | TOKEN_STRING_LITERAL
-       {
-           // remove leading and trailing quotes
-           char* text = strdup(yytext+1);
-           text[strlen(text)-1] = '\0';
-           $$ = expr_create_string_literal(text);
-       }
-     | TOKEN_TRUE
-       { $$ = expr_create_boolean_literal(1); }
-     | TOKEN_FALSE
-       { $$ = expr_create_boolean_literal(0); }
+
+expr : expr TOKEN_PLUS term
+       { $$ = expr_create(EXPR_ADD, $1, $3); }
+     | expr TOKEN_MINUS term
+       { $$ = expr_create(EXPR_SUB, $1, $3); }
+     | term
+       { $$ = $1; }
      ;
+
+term : term TOKEN_MULTIPLY factor
+       { $$ = expr_create(EXPR_MUL, $1, $3); }
+     | term TOKEN_DIVIDE factor
+       { $$ = expr_create(EXPR_DIV, $1, $3); }
+     | factor
+        { $$ = $1; }
+     ;
+
+factor : TOKEN_LPAREN expr TOKEN_RPAREN
+         { $$ = $2; }
+       | TOKEN_MINUS factor
+         { $$ = expr_create(EXPR_SUB, expr_create_integer_literal(0), $2); }
+       //| identifier
+       //  { $$ = expr_create_variable($1); }
+       | TOKEN_INTEGER_LITERAL
+         { $$ = expr_create_integer_literal(atoi(yytext)); } 
+       | TOKEN_STRING_LITERAL
+         {
+             // remove leading and trailing quotes
+             char* text = strdup(yytext+1);
+             text[strlen(text)-1] = '\0';
+             $$ = expr_create_string_literal(text);
+         }
+       | TOKEN_TRUE
+         { $$ = expr_create_boolean_literal(1); }
+       | TOKEN_FALSE
+         { $$ = expr_create_boolean_literal(0); }
+       ;
 
 type : TOKEN_INTEGER
        { $$ = type_create(TYPE_INTEGER); }
