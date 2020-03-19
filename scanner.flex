@@ -15,6 +15,8 @@ IDENT       [a-zA-Z_0-9]
 
 ":"                     return TOKEN_COLON;
 ";"                     return TOKEN_SEMI;
+","                     return TOKEN_COMMA;
+
 "+"                     return TOKEN_PLUS;
 "-"                     return TOKEN_MINUS;
 "*"                     return TOKEN_MULTIPLY;
@@ -47,6 +49,7 @@ IDENT       [a-zA-Z_0-9]
 
 {DIGIT}+                return TOKEN_INTEGER_LITERAL;
 \".*\"                  return TOKEN_STRING_LITERAL;
+\'.\'                   return TOKEN_CHAR_LITERAL;
 {IDENT_START}{IDENT}*   return TOKEN_IDENT;
 
 .                       { printf("scan error. bad token: %c\n", yytext[0]); }

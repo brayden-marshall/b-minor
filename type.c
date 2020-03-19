@@ -2,6 +2,7 @@
 #include <stdio.h>
 
 #include "type.h"
+#include "param_list.h"
 
 struct type* type_create(type_t kind) {
     struct type* t = malloc(sizeof(*t));
@@ -14,6 +15,13 @@ struct type* type_create(type_t kind) {
 struct type* type_create_array(struct type* subtype) {
     struct type* t = type_create(TYPE_ARRAY);
     t->subtype = subtype;
+    return t;
+}
+
+struct type* type_create_function(struct type* return_type, struct param_list* params) {
+    struct type* t = type_create(TYPE_FUNCTION);
+    t->subtype = return_type;
+    t->params = params;
     return t;
 }
 
@@ -39,6 +47,13 @@ void type_print(struct type* t) {
         case TYPE_ARRAY:
             printf("array [] ");
             type_print(t->subtype);
+            break;
+        case TYPE_FUNCTION:
+            printf("function ");
+            type_print(t->subtype);
+            printf("(");
+            param_list_print(t->params);
+            printf(")");
             break;
         default:
             break;

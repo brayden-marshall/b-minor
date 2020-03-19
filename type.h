@@ -21,6 +21,8 @@ struct type* type_create(type_t kind);
 
 struct type* type_create_array(struct type* subtype);
 
+struct type* type_create_function(struct type* return_type, struct param_list* params);
+
 void type_print(struct type* t);
     
 #endif

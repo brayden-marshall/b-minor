@@ -16,6 +16,7 @@
 // punctuation
 %token TOKEN_COLON
 %token TOKEN_SEMI
+%token TOKEN_COMMA
 
 // brackets
 %token TOKEN_LPAREN
@@ -70,16 +71,15 @@ struct decl* decl_list_last = NULL;
     struct stmt* stmt;
     struct expr* expr;
     struct type* type;
-
-    /* possibly more? */
-
+    struct param_list* param_list;
     char* ident;
 }
 
 %type <decl> program decl_list decl
-//%type <stmt> stmt_list stmt
+%type <stmt> stmt_list stmt
 %type <expr> expr term factor
-%type <type> type
+%type <type> type atomic_type
+%type <param_list> param_list
 %type <ident> ident
 
 %%
@@ -92,8 +92,28 @@ decl : ident TOKEN_COLON type TOKEN_SEMI
        { $$ = decl_create($1, $3, 0, 0, 0); }
      | ident TOKEN_COLON type TOKEN_ASSIGN expr TOKEN_SEMI
        { $$ = decl_create($1, $3, $5, 0, 0); }
-     //| /* more cases here */
+     //| ident TOKEN_COLON TOKEN_FUNCTION atomic_type TOKEN_LPAREN param_list TOKEN_RPAREN TOKEN_ASSIGN stmt TOKEN_SEMI
+     //  {
+     //      $$ = decl_create($1, type_create_function($4, $6), 0, $9, 0);
+     //  }
+     | ident TOKEN_COLON TOKEN_FUNCTION atomic_type TOKEN_LPAREN param_list TOKEN_RPAREN TOKEN_SEMI
+       {
+           //printf("parsing function.\n");
+           //printf("ident is %s.\n", $1);
+           //printf("type is: ");
+           //type_print($4);
+           $$ = decl_create($1, type_create_function($4, $6), 0, 0, 0);
+       }
      ;
+
+// FIXME: change this to use left-recursion (bison handles left-recursion better than right-recursion)
+param_list : ident TOKEN_COLON type TOKEN_COMMA param_list
+             { $$ = param_list_create($1, $3, $5); }
+           | ident TOKEN_COLON type
+             { $$ = param_list_create($1, $3, 0); }
+           | /* epsilon */
+             { $$ = NULL; }
+           ;
 
 // FIXME: change this to use left-recursion (bison handles left-recursion better than right-recursion)
 decl_list : decl decl_list
@@ -106,18 +126,17 @@ ident : TOKEN_IDENT
        { $$ = strdup(yytext); }
      ;
 
-//stmt : TOKEN_IF TOKEN_LPAREN expr TOKEN_RPAREN stmt
-//       { $$ = stmt_create(STMT_IF_ELSE, 0, 0, $3, $5, 0, 0); }
-//     | TOKEN_LBRACE stmt_list TOKEN_RBRACE
-//       { $$ = stmt_create(STMT_BLOCK, 0, 0, 0, 0, $2, 0, 0); }
-//     | /* more cases here */
-//
-//     ;
-//
-//stmt_list : stmt stmt_list
-//            { $$ = $1; $1->next = $2; }
-//          ;
-//
+stmt : TOKEN_IF TOKEN_LPAREN expr TOKEN_RPAREN stmt
+         { $$ = stmt_create(STMT_IF_ELSE, 0, 0, $3, $5, 0, 0); }
+     | TOKEN_LBRACE stmt_list TOKEN_RBRACE
+       { $$ = stmt_create(STMT_BLOCK, 0, 0, 0, 0, $2, 0, 0); }
+     ;
+
+
+// FIXME: change this to use left-recursion (bison handles left-recursion better than right-recursion)
+stmt_list : stmt stmt_list
+            { $$ = $1; $1->next = $2; }
+          ;
 
 expr : expr TOKEN_PLUS term
        { $$ = expr_create(EXPR_ADD, $1, $3); }
@@ -143,6 +162,11 @@ factor : TOKEN_LPAREN expr TOKEN_RPAREN
        //  { $$ = expr_create_variable($1); }
        | TOKEN_INTEGER_LITERAL
          { $$ = expr_create_integer_literal(atoi(yytext)); } 
+       | TOKEN_CHAR_LITERAL
+         {
+             // text[1] because first and last character are (')
+             $$ = expr_create_char_literal(yytext[1]);
+         }
        | TOKEN_STRING_LITERAL
          {
              // remove leading and trailing quotes
@@ -156,19 +180,23 @@ factor : TOKEN_LPAREN expr TOKEN_RPAREN
          { $$ = expr_create_boolean_literal(0); }
        ;
 
-type : TOKEN_INTEGER
-       { $$ = type_create(TYPE_INTEGER); }
-     | TOKEN_BOOLEAN
-       { $$ = type_create(TYPE_BOOLEAN); }
-     | TOKEN_CHAR
-       { $$ = type_create(TYPE_CHAR); }
-     | TOKEN_STRING
-       { $$ = type_create(TYPE_STRING); }
+type : atomic_type
+       { $$ = $1; }
      | TOKEN_VOID
        { $$ = type_create(TYPE_VOID); }
      | TOKEN_ARRAY TOKEN_LBRACKET TOKEN_RBRACKET type
        { $$ = type_create_array($4); }
      ;
+
+atomic_type : TOKEN_INTEGER
+              { $$ = type_create(TYPE_INTEGER); }
+            | TOKEN_BOOLEAN
+              { $$ = type_create(TYPE_BOOLEAN); }
+            | TOKEN_CHAR
+              { $$ = type_create(TYPE_CHAR); }
+            | TOKEN_STRING
+              { $$ = type_create(TYPE_STRING); }
+            ;
 
 %%
 

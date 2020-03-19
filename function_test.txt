@@ -1,0 +1,7 @@
+test_fn: function integer ();
+
+test_fn_with_args: function void (x: string, y: char, x: integer,b: boolean);
+
+//square: function integer ( x: integer, y: integer ) = {
+//    return x * x;
+//}
