@@ -127,7 +127,9 @@ ident : TOKEN_IDENT
      ;
 
 stmt : TOKEN_IF TOKEN_LPAREN expr TOKEN_RPAREN stmt
-         { $$ = stmt_create_if_else($3, $5, 0); }
+       { $$ = stmt_create_if_else($3, $5, 0); }
+     | TOKEN_RETURN expr TOKEN_SEMI
+       { $$ = stmt_create_return($2); }
      | TOKEN_LBRACE stmt_list TOKEN_RBRACE
        { $$ = stmt_create_block($2); }
      ;
@@ -159,8 +161,8 @@ factor : TOKEN_LPAREN expr TOKEN_RPAREN
          { $$ = $2; }
        | TOKEN_MINUS factor
          { $$ = expr_create(EXPR_SUB, expr_create_integer_literal(0), $2); }
-       //| identifier
-       //  { $$ = expr_create_variable($1); }
+       | ident
+         { $$ = expr_create_name($1); }
        | TOKEN_INTEGER_LITERAL
          { $$ = expr_create_integer_literal(atoi(yytext)); } 
        | TOKEN_CHAR_LITERAL

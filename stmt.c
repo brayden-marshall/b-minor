@@ -46,6 +46,13 @@ struct stmt* stmt_create_block(struct stmt* body) {
     return s;
 }
 
+struct stmt* stmt_create_return(struct expr* expr) {
+    struct stmt* s = malloc(sizeof(*s));
+    s->kind = STMT_RETURN;
+    s->expr = expr;
+    return s;
+}
+
 void stmt_print(struct stmt* s) {
     if (!s) return;
 

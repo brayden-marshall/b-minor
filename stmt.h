@@ -39,6 +39,8 @@ struct stmt* stmt_create_if_else(
 
 struct stmt* stmt_create_block(struct stmt* body);
 
+struct stmt* stmt_create_return(struct expr* expr);
+
 void stmt_print(struct stmt* s);
 
 #endif

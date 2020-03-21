@@ -50,18 +50,6 @@ void expr_print(struct expr* e) {
     expr_print(e->left);
 
     switch (e->kind) {
-        case EXPR_CHAR_LITERAL:
-            printf("'%c'", e->integer_value);
-            break;
-        case EXPR_STRING_LITERAL:
-            printf("\"%s\"", e->string_literal);
-            break;
-        case EXPR_INTEGER_LITERAL:
-            printf("%d", e->integer_value);
-            break;
-        case EXPR_BOOLEAN_LITERAL:
-            printf("%s", e->integer_value ? "true" : "false");
-            break;
         case EXPR_ADD:
             printf(" + ");
             break;
@@ -74,7 +62,29 @@ void expr_print(struct expr* e) {
         case EXPR_DIV:
             printf(" / ");
             break;
-        default:
+        case EXPR_NAME:
+            printf("%s", e->name);
+            break;
+        case EXPR_CHAR_LITERAL:
+            printf("'%c'", e->integer_value);
+            break;
+        case EXPR_STRING_LITERAL:
+            printf("\"%s\"", e->string_literal);
+            break;
+        case EXPR_INTEGER_LITERAL:
+            printf("%d", e->integer_value);
+            break;
+        case EXPR_BOOLEAN_LITERAL:
+            printf("%s", e->integer_value ? "true" : "false");
+            break;
+        case EXPR_CALL:
+            printf("FIXME: expr_print EXPR_CALL\n");
+            break;
+        case EXPR_ARG:
+            printf("FIXME: expr_print EXPR_ARG\n");
+            break;
+        case EXPR_SUBSCRIPT:
+            printf("FIXME: expr_print EXPR_SUBSCRIPT\n");
             break;
     }
 
