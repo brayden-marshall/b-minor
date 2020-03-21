@@ -79,7 +79,7 @@ struct decl* decl_list_last = NULL;
 %type <stmt> stmt_list stmt
 %type <expr> expr term factor
 %type <type> type atomic_type
-%type <param_list> param_list
+%type <param_list> param_list param
 %type <ident> ident
 
 %%
@@ -97,23 +97,21 @@ decl : ident TOKEN_COLON type TOKEN_SEMI
      //      $$ = decl_create($1, type_create_function($4, $6), 0, $9, 0);
      //  }
      | ident TOKEN_COLON TOKEN_FUNCTION atomic_type TOKEN_LPAREN param_list TOKEN_RPAREN TOKEN_SEMI
-       {
-           //printf("parsing function.\n");
-           //printf("ident is %s.\n", $1);
-           //printf("type is: ");
-           //type_print($4);
-           $$ = decl_create($1, type_create_function($4, $6), 0, 0, 0);
-       }
+       { $$ = decl_create($1, type_create_function($4, $6), 0, 0, 0); }
      ;
 
 // FIXME: change this to use left-recursion (bison handles left-recursion better than right-recursion)
-param_list : ident TOKEN_COLON type TOKEN_COMMA param_list
-             { $$ = param_list_create($1, $3, $5); }
-           | ident TOKEN_COLON type
-             { $$ = param_list_create($1, $3, 0); }
+param_list : param
+             { $$ = $1; }
+           | param TOKEN_COMMA param_list
+             { $$ = $1; $1->next = $3; }
            | /* epsilon */
              { $$ = NULL; }
            ;
+
+param : ident TOKEN_COLON type
+        { $$ = param_list_create($1, $3, 0); }
+      ;
 
 // FIXME: change this to use left-recursion (bison handles left-recursion better than right-recursion)
 decl_list : decl decl_list
@@ -182,8 +180,6 @@ factor : TOKEN_LPAREN expr TOKEN_RPAREN
 
 type : atomic_type
        { $$ = $1; }
-     | TOKEN_VOID
-       { $$ = type_create(TYPE_VOID); }
      | TOKEN_ARRAY TOKEN_LBRACKET TOKEN_RBRACKET type
        { $$ = type_create_array($4); }
      ;
@@ -196,6 +192,8 @@ atomic_type : TOKEN_INTEGER
               { $$ = type_create(TYPE_CHAR); }
             | TOKEN_STRING
               { $$ = type_create(TYPE_STRING); }
+            | TOKEN_VOID
+              { $$ = type_create(TYPE_VOID); }
             ;
 
 %%

@@ -22,6 +22,6 @@ void param_list_print(struct param_list* p) {
 
     if (p->next) {
         printf(", ");
-        param_list_print(p);
+        param_list_print(p->next);
     }
 }
