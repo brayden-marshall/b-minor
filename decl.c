@@ -4,6 +4,7 @@
 #include "decl.h"
 #include "expr.h"
 #include "type.h"
+#include "stmt.h"
 
 struct decl* decl_create(
     char* name,
@@ -31,7 +32,10 @@ void decl_print(struct decl* d) {
         expr_print(d->value);
     }
 
-    // TODO: print d->code
+    if (d->code) {
+        printf(" = ");
+        stmt_print(d->code);
+    }
 
     printf(";\n");
     decl_print(d->next);

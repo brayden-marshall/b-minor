@@ -92,11 +92,13 @@ decl : ident TOKEN_COLON type TOKEN_SEMI
        { $$ = decl_create($1, $3, 0, 0, 0); }
      | ident TOKEN_COLON type TOKEN_ASSIGN expr TOKEN_SEMI
        { $$ = decl_create($1, $3, $5, 0, 0); }
-     //| ident TOKEN_COLON TOKEN_FUNCTION atomic_type TOKEN_LPAREN param_list TOKEN_RPAREN TOKEN_ASSIGN stmt TOKEN_SEMI
-     //  {
-     //      $$ = decl_create($1, type_create_function($4, $6), 0, $9, 0);
-     //  }
-     | ident TOKEN_COLON TOKEN_FUNCTION atomic_type TOKEN_LPAREN param_list TOKEN_RPAREN TOKEN_SEMI
+     | ident TOKEN_COLON TOKEN_FUNCTION atomic_type
+       TOKEN_LPAREN param_list TOKEN_RPAREN TOKEN_ASSIGN stmt TOKEN_SEMI
+       {
+           $$ = decl_create($1, type_create_function($4, $6), 0, $9, 0);
+       }
+     | ident TOKEN_COLON TOKEN_FUNCTION atomic_type
+       TOKEN_LPAREN param_list TOKEN_RPAREN TOKEN_SEMI
        { $$ = decl_create($1, type_create_function($4, $6), 0, 0, 0); }
      ;
 
@@ -125,15 +127,16 @@ ident : TOKEN_IDENT
      ;
 
 stmt : TOKEN_IF TOKEN_LPAREN expr TOKEN_RPAREN stmt
-         { $$ = stmt_create(STMT_IF_ELSE, 0, 0, $3, $5, 0, 0); }
+         { $$ = stmt_create_if_else($3, $5, 0); }
      | TOKEN_LBRACE stmt_list TOKEN_RBRACE
-       { $$ = stmt_create(STMT_BLOCK, 0, 0, 0, 0, $2, 0, 0); }
+       { $$ = stmt_create_block($2); }
      ;
-
 
 // FIXME: change this to use left-recursion (bison handles left-recursion better than right-recursion)
 stmt_list : stmt stmt_list
             { $$ = $1; $1->next = $2; }
+          | /* epsilon */
+            { $$ = NULL; }
           ;
 
 expr : expr TOKEN_PLUS term

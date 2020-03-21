@@ -23,6 +23,7 @@ struct stmt {
 };
 
 struct stmt* stmt_create(
+    stmt_t kind,
     struct decl* decl,
     struct expr* init_expr,
     struct expr* expr,
@@ -31,5 +32,13 @@ struct stmt* stmt_create(
     struct stmt* else_body,
     struct stmt* next
 );
+
+struct stmt* stmt_create_if_else(
+    struct expr* expr, struct stmt* body, struct stmt* else_body
+);
+
+struct stmt* stmt_create_block(struct stmt* body);
+
+void stmt_print(struct stmt* s);
 
 #endif
