@@ -1,2 +1,8 @@
-if (10) {
-}
+fn: function void () = {
+    if (true) return y;
+
+    if ("hello") {
+        return y;
+        return y;
+    }
+};
