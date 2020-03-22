@@ -68,6 +68,8 @@ void indent_print(char* string, int level) {
 
 // indent_first == boolean
 void body_print(struct stmt *s, int indent_level, int indent_first) {
+    if (!s) return;
+
     if (s->kind == STMT_BLOCK) {
         if (indent_first) {
             indent_print("{\n", indent_level);
@@ -78,7 +80,8 @@ void body_print(struct stmt *s, int indent_level, int indent_first) {
         indent_print("}\n", indent_level);
     } else {
         printf("\n");
-        _stmt_print(s->body, indent_level + 1);
+        _stmt_print(s, indent_level + 1);
+        printf("\n");
     }
 }
 
