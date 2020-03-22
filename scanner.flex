@@ -46,7 +46,6 @@ IDENT       [a-zA-Z_0-9]
 "void"                  return TOKEN_VOID;
 "while"                 return TOKEN_WHILE;
 
-
 {DIGIT}+                return TOKEN_INTEGER_LITERAL;
 \".*\"                  return TOKEN_STRING_LITERAL;
 \'.\'                   return TOKEN_CHAR_LITERAL;

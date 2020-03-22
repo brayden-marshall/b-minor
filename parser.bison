@@ -76,8 +76,8 @@ struct decl* decl_list_last = NULL;
 }
 
 %type <decl> program decl_list decl
-%type <stmt> stmt_list stmt
-%type <expr> expr term factor
+%type <stmt> stmt_list stmt for_expr
+%type <expr> expr term factor maybe_expr
 %type <type> type atomic_type
 %type <param_list> param_list param
 %type <ident> ident
@@ -128,11 +128,28 @@ ident : TOKEN_IDENT
 
 stmt : TOKEN_IF TOKEN_LPAREN expr TOKEN_RPAREN stmt
        { $$ = stmt_create_if_else($3, $5, 0); }
+     // FIXME: implement if-else statements with no conflicts
+     //| TOKEN_IF TOKEN_LPAREN expr TOKEN_RPAREN stmt TOKEN_ELSE stmt
+     //  { $$ = stmt_create_if_else($3, $5, 0); }
+     | TOKEN_FOR TOKEN_LPAREN for_expr TOKEN_RPAREN stmt
+       { $$ = $3; $$->body = $5; }
      | TOKEN_RETURN expr TOKEN_SEMI
        { $$ = stmt_create_return($2); }
      | TOKEN_LBRACE stmt_list TOKEN_RBRACE
        { $$ = stmt_create_block($2); }
+     | TOKEN_SEMI
+       { $$ = NULL; }
      ;
+
+for_expr : maybe_expr TOKEN_SEMI maybe_expr TOKEN_SEMI maybe_expr
+           { $$ = stmt_create_for($1, $3, $5, 0); }
+         ;
+
+maybe_expr : expr
+             { $$ = $1; }
+           | /* epsilon */
+             { $$ = NULL; }
+           ;
 
 // FIXME: change this to use left-recursion (bison handles left-recursion better than right-recursion)
 stmt_list : stmt stmt_list

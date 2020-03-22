@@ -37,6 +37,11 @@ struct stmt* stmt_create_if_else(
     struct expr* expr, struct stmt* body, struct stmt* else_body
 );
 
+struct stmt* stmt_create_for(
+    struct expr* init_expr, struct expr* expr,
+    struct expr* next_expr, struct stmt* body
+);
+
 struct stmt* stmt_create_block(struct stmt* body);
 
 struct stmt* stmt_create_return(struct expr* expr);

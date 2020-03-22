@@ -31,26 +31,30 @@ struct stmt* stmt_create(
 struct stmt* stmt_create_if_else(
     struct expr* expr, struct stmt* body, struct stmt* else_body
 ) {
-    struct stmt* s = malloc(sizeof(*s));
-    s->kind = STMT_IF_ELSE;
-    s->expr = expr;
-    s->body = body;
-    s->else_body = else_body;
-    return s;
+    return stmt_create(
+        STMT_IF_ELSE, 0, 0, expr, 0, body, else_body, 0
+    );
 }
 
 struct stmt* stmt_create_block(struct stmt* body) {
-    struct stmt* s = malloc(sizeof(*s));
-    s->kind = STMT_BLOCK;
-    s->body = body;
-    return s;
+    return stmt_create(
+        STMT_BLOCK, 0, 0, 0, 0, body, 0, 0
+    );
 }
 
 struct stmt* stmt_create_return(struct expr* expr) {
-    struct stmt* s = malloc(sizeof(*s));
-    s->kind = STMT_RETURN;
-    s->expr = expr;
-    return s;
+    return stmt_create(
+        STMT_RETURN, 0, 0, expr, 0, 0, 0, 0
+    );
+}
+
+struct stmt* stmt_create_for(
+    struct expr* init_expr, struct expr* expr,
+    struct expr* next_expr, struct stmt* body
+) {
+    return stmt_create(
+        STMT_FOR, 0, init_expr, expr, next_expr, body, 0, 0
+    );
 }
 
 void indent_print(char* string, int level);
@@ -81,7 +85,6 @@ void body_print(struct stmt *s, int indent_level, int indent_first) {
     } else {
         printf("\n");
         _stmt_print(s, indent_level + 1);
-        printf("\n");
     }
 }
 
@@ -102,14 +105,12 @@ void _stmt_print(struct stmt* s, int indent) {
             expr_print(s->expr);
             printf(") ");
             body_print(s->body, indent, 0);
-            //_stmt_print(s->body, indent+1);
 
             if (s->else_body) {
                 indent_print("else (", indent);
                 expr_print(s->expr);
                 printf(") ");
                 body_print(s->body, indent, 0);
-                //_stmt_print(s->body, indent);
             }
             break;
         case STMT_FOR:
@@ -119,8 +120,8 @@ void _stmt_print(struct stmt* s, int indent) {
             expr_print(s->expr);
             printf("; ");
             expr_print(s->next_expr);
-            printf(")\n");
-            _stmt_print(s->body, indent+1);
+            printf(") ");
+            body_print(s->body, indent, 0);
             break;
         case STMT_PRINT:
             printf("FIXME: printing print statements.\n");
@@ -131,9 +132,6 @@ void _stmt_print(struct stmt* s, int indent) {
             printf(";\n");
             break;
         case STMT_BLOCK:
-            //indent_print("{\n", indent);
-            //_stmt_print(s->body, indent+1);
-            //indent_print("}\n", indent);
             body_print(s, indent, 1);
             break;
     }

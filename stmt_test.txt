@@ -1,8 +1,18 @@
 fn: function void () = {
-    if (true) return y;
+    if (true) return true;
 
     if ("hello") {
-        return y;
-        return y;
+        return "testing";
+        return false;
+    }
+
+    if (10 + 7 * (100 - 11)) {
+        return 100;
+    }
+
+    for (;;) {
+    }
+
+    for (x; testing * 7 - (1/1); 'c') {
     }
 };
