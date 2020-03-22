@@ -11,6 +11,9 @@ IDENT       [a-zA-Z_0-9]
 
 %%
 
+"/*".*"*/"              { printf("found block comment, text is: '%s'\n", yytext); }
+"//".*\n                { printf("found line comment, text is: %s", yytext); }
+
 [ \n\r\t]*              ;
 
 ":"                     return TOKEN_COLON;

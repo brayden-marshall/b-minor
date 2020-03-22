@@ -1,0 +1,18 @@
+// this is a line comment
+
+/*
+*/
+/* for (i + 10; 10-11; "hello there" { } */
+
+/*
+
+ i: interog + 7;
+
+ honteuhonuon
+ eouhoentuonuho
+ uot-nudo
+
+*/
+
+
+test: char = 't';

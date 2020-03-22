@@ -9,6 +9,8 @@
 
 #include "parser.h"
 
+#define DEBUG 0
+
 extern int yyparse();
 extern struct decl* parser_result;
 
@@ -21,17 +23,20 @@ int main(int argc, char** argv) {
         return EXIT_FAILURE;
     }
 
-    // print out token values
-    //enum yytokentype t;
-    //while ((t = yylex())) {
-    //    printf("%d\n", t);
-    //}
-    
     yyin = fopen(argv[1], "r");
     if (!yyin) {
         printf("Could not open file '%s'.", argv[2]);
         return EXIT_FAILURE;
     }
+
+    // print out token values
+#if DEBUG
+    printf("token values are:\n");
+    enum yytokentype t;
+    while ((t = yylex())) {
+        printf("%d\n", t);
+    }
+#endif
     
     if (yyparse() == 0) {
         printf("Parse successful!\n");

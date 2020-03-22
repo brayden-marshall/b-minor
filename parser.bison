@@ -40,6 +40,10 @@
 %token TOKEN_TRUE
 %token TOKEN_FALSE
 
+// comments
+//%token TOKEN_BLOCK_COMMENT
+//%token TOKEN_LINE_COMMENT
+
 // other
 %token TOKEN_IDENT
 
@@ -171,7 +175,7 @@ term : term TOKEN_MULTIPLY factor
      | term TOKEN_DIVIDE factor
        { $$ = expr_create(EXPR_DIV, $1, $3); }
      | factor
-        { $$ = $1; }
+       { $$ = $1; }
      ;
 
 factor : TOKEN_LPAREN expr TOKEN_RPAREN
