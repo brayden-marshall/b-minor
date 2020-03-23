@@ -2,6 +2,8 @@
 #include "parser.h"
 %}
 
+%x BLOCK_COMMENT
+
 %option nounput
 %option noinput
 
@@ -11,8 +13,13 @@ IDENT       [a-zA-Z_0-9]
 
 %%
 
-"/*".*"*/"              { printf("found block comment, text is: '%s'\n", yytext); }
-"//".*\n                { printf("found line comment, text is: %s", yytext); }
+<INITIAL>"/*"           { BEGIN(BLOCK_COMMENT); }
+<BLOCK_COMMENT>"*/"     { BEGIN(INITIAL); }
+<BLOCK_COMMENT>[^*\n]+  { }
+<BLOCK_COMMENT>"*"      { }
+<BLOCK_COMMENT>\n       { }
+
+"//".*\n                { }
 
 [ \n\r\t]*              ;
 
