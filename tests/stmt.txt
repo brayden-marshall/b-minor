@@ -15,4 +15,10 @@ fn: function void () = {
 
     for (x; testing * 7 - (1/1); 'c') {
     }
+
+    print ;
+
+    print "Hello";
+
+    print 1, true, false, '#', "Hello", testing123;
 };

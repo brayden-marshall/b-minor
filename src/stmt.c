@@ -48,6 +48,12 @@ struct stmt* stmt_create_return(struct expr* expr) {
     );
 }
 
+struct stmt* stmt_create_print(struct expr* expr) {
+    return stmt_create(
+        STMT_PRINT, 0, 0, expr, 0, 0, 0, 0
+    );
+}
+
 struct stmt* stmt_create_for(
     struct expr* init_expr, struct expr* expr,
     struct expr* next_expr, struct stmt* body
@@ -124,7 +130,9 @@ void _stmt_print(struct stmt* s, int indent) {
             body_print(s->body, indent, 0);
             break;
         case STMT_PRINT:
-            printf("FIXME: printing print statements.\n");
+            indent_print("print ", indent);
+            expr_print(s->expr);
+            printf(";\n");
             break;
         case STMT_RETURN:
             indent_print("return ", indent);

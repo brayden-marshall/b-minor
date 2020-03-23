@@ -44,6 +44,10 @@ struct expr* expr_create_string_literal(const char* str) {
     return e;
 }
 
+struct expr* expr_create_arg(struct expr* expr, struct expr* next) {
+    return expr_create(EXPR_ARG, expr, next);
+}
+
 void expr_print(struct expr* e) {
     if (!e) return;
 
@@ -81,7 +85,9 @@ void expr_print(struct expr* e) {
             printf("FIXME: expr_print EXPR_CALL\n");
             break;
         case EXPR_ARG:
-            printf("FIXME: expr_print EXPR_ARG\n");
+            if (e->right) {
+                printf(", ");
+            }
             break;
         case EXPR_SUBSCRIPT:
             printf("FIXME: expr_print EXPR_SUBSCRIPT\n");

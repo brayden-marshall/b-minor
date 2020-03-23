@@ -46,6 +46,8 @@ struct stmt* stmt_create_block(struct stmt* body);
 
 struct stmt* stmt_create_return(struct expr* expr);
 
+struct stmt* stmt_create_print(struct expr* expr);
+
 void stmt_print(struct stmt* s);
 
 #endif

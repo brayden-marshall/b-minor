@@ -35,8 +35,13 @@ void decl_print(struct decl* d) {
     if (d->code) {
         printf(" = ");
         stmt_print(d->code);
+        if (d->code->kind != STMT_BLOCK) {
+            printf(";");
+        }
+    } else {
+        printf(";");
     }
 
-    printf(";\n");
+    printf("\n");
     decl_print(d->next);
 }
