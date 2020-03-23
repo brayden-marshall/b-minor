@@ -80,8 +80,8 @@ struct decl* decl_list_last = NULL;
 }
 
 %type <decl> program decl_list decl
-%type <stmt> stmt_list stmt for_expr
-%type <expr> expr term factor maybe_expr print_args
+%type <stmt> stmt_list stmt stmt_block for_expr
+%type <expr> expr term factor maybe_expr args
 %type <type> type atomic_type
 %type <param_list> param_list param
 %type <ident> ident
@@ -97,7 +97,7 @@ decl : ident TOKEN_COLON type TOKEN_SEMI
      | ident TOKEN_COLON type TOKEN_ASSIGN expr TOKEN_SEMI
        { $$ = decl_create($1, $3, $5, 0, 0); }
      | ident TOKEN_COLON TOKEN_FUNCTION atomic_type
-       TOKEN_LPAREN param_list TOKEN_RPAREN TOKEN_ASSIGN stmt
+       TOKEN_LPAREN param_list TOKEN_RPAREN TOKEN_ASSIGN stmt_block
        {
            $$ = decl_create($1, type_create_function($4, $6), 0, $9, 0);
        }
@@ -139,21 +139,25 @@ stmt : TOKEN_IF TOKEN_LPAREN expr TOKEN_RPAREN stmt
        { $$ = $3; $$->body = $5; }
      | TOKEN_RETURN expr TOKEN_SEMI
        { $$ = stmt_create_return($2); }
-     | TOKEN_PRINT print_args TOKEN_SEMI
+     | TOKEN_PRINT args TOKEN_SEMI
        { $$ = stmt_create_print($2); }
-     | TOKEN_LBRACE stmt_list TOKEN_RBRACE
-       { $$ = stmt_create_block($2); }
+     | stmt_block
+       { $$ = $1; }
      | TOKEN_SEMI
        { $$ = NULL; }
      ;
 
-print_args : expr
-             { $$ = expr_create_arg($1, 0); }
-           | expr TOKEN_COMMA print_args
-             { $$ = expr_create_arg($1, $3); }
-           | /* epsilon */
-             { $$ = NULL; }
+stmt_block : TOKEN_LBRACE stmt_list TOKEN_RBRACE
+             { $$ = stmt_create_block($2); }
            ;
+
+args : expr
+         { $$ = expr_create_arg($1, 0); }
+     | expr TOKEN_COMMA args
+         { $$ = expr_create_arg($1, $3); }
+     | /* epsilon */
+         { $$ = NULL; }
+     ;
 
 for_expr : maybe_expr TOKEN_SEMI maybe_expr TOKEN_SEMI maybe_expr
            { $$ = stmt_create_for($1, $3, $5, 0); }
@@ -190,6 +194,8 @@ term : term TOKEN_MULTIPLY factor
 
 factor : TOKEN_LPAREN expr TOKEN_RPAREN
          { $$ = $2; }
+       | TOKEN_LBRACE args TOKEN_RBRACE
+         { $$ = expr_create_init_list($2); }
        | TOKEN_MINUS factor
          { $$ = expr_create(EXPR_SUB, expr_create_integer_literal(0), $2); }
        | ident

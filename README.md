@@ -2,9 +2,6 @@
 
 - implement parsing for the else portion of if-else statements
 
-- allow expressions in array type definitions. example:
-    `array [5] integer`
-
 - initializer lists for array initialization
 
 - operators to implement, with precedence level:

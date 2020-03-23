@@ -4,3 +4,6 @@ ntoeuhnto:  integer = 7 * 1;
 oteuhnth:   integer = 100 / 0;
 onudnh:     integer = -42;
 nountod:    integer = 100 * (10 - (8 + 2) / (167-1));
+test_empty_init_list: array [] integer = {};
+test_one_init_list: array [] integer = {"Hello"};
+test_init_list: array [] integer = {1, 2, 'c', 4, true, hello};

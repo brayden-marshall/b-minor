@@ -48,11 +48,16 @@ struct expr* expr_create_arg(struct expr* expr, struct expr* next) {
     return expr_create(EXPR_ARG, expr, next);
 }
 
+struct expr* expr_create_init_list(struct expr* args) {
+    return expr_create(EXPR_INIT_LIST, 0, args);
+}
+
 void expr_print(struct expr* e) {
     if (!e) return;
 
     expr_print(e->left);
 
+    int print_right = 1;
     switch (e->kind) {
         case EXPR_ADD:
             printf(" + ");
@@ -84,6 +89,12 @@ void expr_print(struct expr* e) {
         case EXPR_CALL:
             printf("FIXME: expr_print EXPR_CALL\n");
             break;
+        case EXPR_INIT_LIST:
+            print_right = 0;
+            printf("{");
+            expr_print(e->right);
+            printf("}");
+            break;
         case EXPR_ARG:
             if (e->right) {
                 printf(", ");
@@ -94,5 +105,7 @@ void expr_print(struct expr* e) {
             break;
     }
 
-    expr_print(e->right);
+    if (print_right) {
+        expr_print(e->right);
+    }
 }

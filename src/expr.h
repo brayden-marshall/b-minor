@@ -14,6 +14,7 @@ typedef enum {
     EXPR_BOOLEAN_LITERAL,
 
     EXPR_CALL,
+    EXPR_INIT_LIST,
     EXPR_ARG,
     EXPR_SUBSCRIPT,
 } expr_t;
@@ -41,6 +42,8 @@ struct expr* expr_create_char_literal(char c);
 struct expr* expr_create_string_literal(const char* str);
 
 struct expr* expr_create_arg(struct expr* expr, struct expr* next);
+
+struct expr* expr_create_init_list(struct expr* args);
 
 void expr_print(struct expr* e);
 
