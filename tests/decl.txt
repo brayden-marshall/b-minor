@@ -10,3 +10,4 @@ char_variable: char = 'h';
 troo_falszz: boolean = true;
 falzz_troo: boolean = false;
 array_test: array [] array [] integer;
+array_test_with_size: array [5] array [100 * 72 + (10 - 1)] integer;

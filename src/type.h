@@ -15,11 +15,12 @@ struct type {
     type_t kind;
     struct type* subtype;
     struct param_list* params;
+    struct expr* size_expr;
 };
 
 struct type* type_create(type_t kind);
 
-struct type* type_create_array(struct type* subtype);
+struct type* type_create_array(struct type* subtype, struct expr* size_expr);
 
 struct type* type_create_function(struct type* return_type, struct param_list* params);
 

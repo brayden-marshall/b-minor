@@ -217,7 +217,9 @@ factor : TOKEN_LPAREN expr TOKEN_RPAREN
 type : atomic_type
        { $$ = $1; }
      | TOKEN_ARRAY TOKEN_LBRACKET TOKEN_RBRACKET type
-       { $$ = type_create_array($4); }
+       { $$ = type_create_array($4, 0); }
+     | TOKEN_ARRAY TOKEN_LBRACKET expr TOKEN_RBRACKET type
+       { $$ = type_create_array($5, $3); }
      ;
 
 atomic_type : TOKEN_INTEGER

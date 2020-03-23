@@ -2,6 +2,7 @@
 #include <stdio.h>
 
 #include "type.h"
+#include "expr.h"
 #include "param_list.h"
 
 struct type* type_create(type_t kind) {
@@ -9,12 +10,14 @@ struct type* type_create(type_t kind) {
     t->kind = kind;
     t->subtype = 0;
     t->params = 0;
+    t->size_expr = 0;
     return t;
 }
 
-struct type* type_create_array(struct type* subtype) {
+struct type* type_create_array(struct type* subtype, struct expr* size_expr) {
     struct type* t = type_create(TYPE_ARRAY);
     t->subtype = subtype;
+    t->size_expr = size_expr;
     return t;
 }
 
@@ -45,7 +48,9 @@ void type_print(struct type* t) {
             printf("string");
             break;
         case TYPE_ARRAY:
-            printf("array [] ");
+            printf("array [");
+            expr_print(t->size_expr);
+            printf("] ");
             type_print(t->subtype);
             break;
         case TYPE_FUNCTION:

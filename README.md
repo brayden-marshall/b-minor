@@ -1,8 +1,5 @@
 ## TODO
 
-- print statement. example:
-    `print "The temperature is: ", temp, " degrees\n";
-
 - implement parsing for the else portion of if-else statements
 
 - allow expressions in array type definitions. example:
