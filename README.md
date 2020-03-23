@@ -2,8 +2,6 @@
 
 - implement parsing for the else portion of if-else statements
 
-- initializer lists for array initialization
-
 - operators to implement, with precedence level:
     - precedence 9:
         - []

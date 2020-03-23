@@ -26,12 +26,29 @@
 %token TOKEN_LBRACE
 %token TOKEN_RBRACE
 
-// operators
+// arithmetic operators
 %token TOKEN_ASSIGN
 %token TOKEN_PLUS
 %token TOKEN_MINUS
 %token TOKEN_MULTIPLY
 %token TOKEN_DIVIDE
+%token TOKEN_INCREMENT
+%token TOKEN_DECREMENT
+%token TOKEN_EXPONENT
+%token TOKEN_MODULO
+
+// comparison operators
+%token TOKEN_CMP_GT
+%token TOKEN_CMP_GT_EQUAL
+%token TOKEN_CMP_LT
+%token TOKEN_CMP_LT_EQUAL
+%token TOKEN_CMP_EQUAL
+%token TOKEN_CMP_NOT_EQUAL
+
+// logical operators
+%token TOKEN_LOGICAL_AND
+%token TOKEN_LOGICAL_OR
+%token TOKEN_LOGICAL_NEGATE
 
 // literals
 %token TOKEN_INTEGER_LITERAL

@@ -27,10 +27,27 @@ IDENT       [a-zA-Z_0-9]
 ";"                     return TOKEN_SEMI;
 ","                     return TOKEN_COMMA;
 
+"++"                    return TOKEN_INCREMENT;
+"--"                    return TOKEN_DECREMENT;
+
+">"                     return TOKEN_CMP_GT;
+">="                    return TOKEN_CMP_GT_EQUAL;
+"<"                     return TOKEN_CMP_LT;
+"<="                    return TOKEN_CMP_LT_EQUAL;
+"=="                    return TOKEN_CMP_EQUAL;
+"!="                    return TOKEN_CMP_NOT_EQUAL;
+
+"&&"                    return TOKEN_LOGICAL_AND;
+"||"                    return TOKEN_LOGICAL_OR;
+"!"                     return TOKEN_LOGICAL_NEGATE;
+
 "+"                     return TOKEN_PLUS;
 "-"                     return TOKEN_MINUS;
 "*"                     return TOKEN_MULTIPLY;
 "/"                     return TOKEN_DIVIDE;
+"^"                     return TOKEN_EXPONENT;
+"%"                     return TOKEN_MODULO;
+
 "="                     return TOKEN_ASSIGN;
 
 "("                     return TOKEN_LPAREN;
