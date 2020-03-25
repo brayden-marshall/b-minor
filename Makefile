@@ -1,9 +1,10 @@
 # The top level rule indicates how to link everything together into calc
 
 chapter6: obj/decl.o obj/expr.o obj/parser.o obj/scanner.o obj/stmt.o obj/type.o \
-          obj/param_list.o obj/main.o
+          obj/param_list.o obj/main.o obj/scope.o obj/symbol.o obj/hash_table.o
 	gcc obj/decl.o obj/expr.o obj/parser.o obj/scanner.o obj/stmt.o obj/type.o \
-	    obj/param_list.o obj/main.o -o bin/chapter6 -lm
+	    obj/param_list.o obj/main.o obj/scope.o obj/symbol.o obj/hash_table.o \
+	    -o bin/chapter6 -lm
 
 # This pattern indicates that any .o file depends
 # upon the .c file of the same name, and all of the .h files.

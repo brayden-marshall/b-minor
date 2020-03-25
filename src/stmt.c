@@ -24,7 +24,7 @@ struct stmt* stmt_create(
     s->body = body;
     s->else_body = else_body;
     s->next = next;
-
+    s->symbol = NULL;
     return s;
 }
 

@@ -1,6 +1,8 @@
 #ifndef EXPR_H
 #define EXPR_H
 
+#include "symbol.h"
+
 typedef enum {
     // arithmetic operations
     EXPR_ADD = 0,
@@ -51,6 +53,8 @@ struct expr {
     const char* name;
     int integer_value;
     const char* string_literal;
+
+    struct symbol* symbol;
 };
 
 struct expr* expr_create(expr_t kind, struct expr* left, struct expr* right);

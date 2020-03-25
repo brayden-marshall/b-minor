@@ -20,6 +20,8 @@ struct stmt {
     struct stmt* body;
     struct stmt* else_body;
     struct stmt* next;
+
+    struct symbol* symbol;
 };
 
 struct stmt* stmt_create(

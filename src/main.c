@@ -6,6 +6,8 @@
 #include "stmt.h"
 #include "type.h"
 #include "param_list.h"
+#include "scope.h"
+#include "hash_table.h"
 
 #include "parser.h"
 
@@ -17,6 +19,8 @@ extern struct decl* parser_result;
 extern int yylex();
 extern FILE* yyin;
 
+extern struct hash_table* scope_stack[256];
+
 int main(int argc, char** argv) {
     if (argc != 2) {
         printf("Require one argument: filename.\n");
@@ -25,7 +29,7 @@ int main(int argc, char** argv) {
 
     yyin = fopen(argv[1], "r");
     if (!yyin) {
-        printf("Could not open file '%s'.", argv[2]);
+        printf("Could not open file '%s'.", argv[1]);
         return EXIT_FAILURE;
     }
 
@@ -38,17 +42,21 @@ int main(int argc, char** argv) {
     }
 #endif
     
-    if (yyparse() == 0) {
-        printf("Parse successful!\n");
-        printf("Result is:\n");
-        if (parser_result) {
-            decl_print(parser_result);
-        } else {
-            printf("null\n");
-        }
-    } else {
+    if (yyparse() != 0) {
         printf("Parse failed!\n");
+        return EXIT_FAILURE;
     }
+
+    printf("Parse successful!\n");
+    printf("Result is:\n");
+    if (parser_result) {
+        decl_print(parser_result);
+    } else {
+        printf("null\n");
+    }
+
+    scope_stack[0] = hash_table_create(0, 0);
+    decl_resolve(parser_result);
 
     fclose(yyin);
 

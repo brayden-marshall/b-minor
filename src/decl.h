@@ -7,6 +7,7 @@ struct decl {
     struct expr* value;
     struct stmt* code;
     struct decl* next;
+    struct symbol* symbol;
 };
 
 struct decl* decl_create(

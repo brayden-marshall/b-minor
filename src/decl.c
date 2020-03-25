@@ -19,6 +19,7 @@ struct decl* decl_create(
     d->value = value;
     d->code = code;
     d->next = next;
+    d->symbol = NULL;
     return d;
 }
 

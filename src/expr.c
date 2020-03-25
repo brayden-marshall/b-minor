@@ -8,9 +8,10 @@ struct expr* expr_create(expr_t kind, struct expr* left, struct expr* right) {
     e->kind = kind;
     e->left = left;
     e->right = right;
-    e->name = 0;
+    e->name = NULL;
     e->integer_value = 0;
-    e->string_literal = 0;
+    e->string_literal = NULL;
+    e->symbol = NULL;
     return e;
 }
 
