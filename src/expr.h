@@ -36,6 +36,7 @@ typedef enum {
     EXPR_INIT_LIST,
     EXPR_ARG,
     EXPR_SUBSCRIPT,
+    EXPR_ASSIGN,
 
     EXPR_INCREMENT,
     EXPR_DECREMENT,

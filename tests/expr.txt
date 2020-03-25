@@ -53,3 +53,5 @@ gt_equal_test: boolean = 7 > 0;
 lt_test: boolean = x < 'c';
 
 lt_equal_test: boolean = x <= false;
+
+assignment_test: integer = x = 6;

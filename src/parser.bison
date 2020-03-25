@@ -97,8 +97,8 @@ struct decl* decl_list_last = NULL;
 }
 
 %type <decl> program decl_list decl
-%type <stmt> stmt_list stmt stmt_block for_expr
-%type <expr> expr expr1 expr2 expr3 expr4 expr5 term factor maybe_expr args
+%type <stmt> stmt_list stmt stmt_block for_expr open_stmt closed_stmt simple_stmt
+%type <expr> expr expr0 expr1 expr2 expr3 expr4 expr5 term factor maybe_expr args init_list
 %type <type> type atomic_type
 %type <param_list> param_list param
 %type <ident> ident
@@ -113,6 +113,8 @@ decl : ident TOKEN_COLON type TOKEN_SEMI
        { $$ = decl_create($1, $3, 0, 0, 0); }
      | ident TOKEN_COLON type TOKEN_ASSIGN expr TOKEN_SEMI
        { $$ = decl_create($1, $3, $5, 0, 0); }
+     | ident TOKEN_COLON type TOKEN_ASSIGN init_list TOKEN_SEMI
+       { $$ = decl_create($1, $3, $5, 0, 0); }
      | ident TOKEN_COLON TOKEN_FUNCTION atomic_type
        TOKEN_LPAREN param_list TOKEN_RPAREN TOKEN_ASSIGN stmt_block
        {
@@ -122,6 +124,10 @@ decl : ident TOKEN_COLON type TOKEN_SEMI
        TOKEN_LPAREN param_list TOKEN_RPAREN TOKEN_SEMI
        { $$ = decl_create($1, type_create_function($4, $6), 0, 0, 0); }
      ;
+
+init_list : TOKEN_LBRACE args TOKEN_RBRACE
+             { $$ = expr_create_init_list($2); }
+           ;
 
 // FIXME: change this to use left-recursion (bison handles left-recursion better than right-recursion)
 param_list : param
@@ -147,26 +153,56 @@ ident : TOKEN_IDENT
        { $$ = strdup(yytext); }
      ;
 
-stmt : TOKEN_IF TOKEN_LPAREN expr TOKEN_RPAREN stmt
-       { $$ = stmt_create_if_else($3, $5, 0); }
-     // FIXME: implement if-else statements with no conflicts
-     //| TOKEN_IF TOKEN_LPAREN expr TOKEN_RPAREN stmt TOKEN_ELSE stmt
-     //  { $$ = stmt_create_if_else($3, $5, 0); }
-     | TOKEN_FOR TOKEN_LPAREN for_expr TOKEN_RPAREN stmt
-       { $$ = $3; $$->body = $5; }
-     | TOKEN_RETURN expr TOKEN_SEMI
-       { $$ = stmt_create_return($2); }
-     | TOKEN_PRINT args TOKEN_SEMI
-       { $$ = stmt_create_print($2); }
-     | stmt_block
+
+stmt : open_stmt
        { $$ = $1; }
-     | TOKEN_SEMI
-       { $$ = NULL; }
+     | closed_stmt
+       { $$ = $1; }
      ;
+
+open_stmt : TOKEN_IF TOKEN_LPAREN expr TOKEN_RPAREN simple_stmt
+            { $$ = stmt_create_if_else($3, $5, 0); }
+          | TOKEN_IF TOKEN_LPAREN expr TOKEN_RPAREN open_stmt
+            { $$ = stmt_create_if_else($3, $5, 0); }
+          | TOKEN_IF TOKEN_LPAREN expr TOKEN_RPAREN closed_stmt TOKEN_ELSE open_stmt
+            { $$ = stmt_create_if_else($3, $5, $7); }
+          | TOKEN_FOR TOKEN_LPAREN for_expr TOKEN_RPAREN open_stmt
+            { $$ = $3; $$->body = $5; }
+          ;
+
+closed_stmt : simple_stmt
+              { $$ = $1; }
+            | TOKEN_IF TOKEN_LPAREN expr TOKEN_RPAREN closed_stmt TOKEN_ELSE closed_stmt
+              { $$ = stmt_create_if_else($3, $5, $7); }
+            | TOKEN_FOR TOKEN_LPAREN for_expr TOKEN_RPAREN closed_stmt
+              { $$ = $3; $$->body = $5; }
+            ;
+
+simple_stmt : TOKEN_RETURN expr TOKEN_SEMI
+              { $$ = stmt_create_return($2); }
+            | TOKEN_PRINT args TOKEN_SEMI
+              { $$ = stmt_create_print($2); }
+            | stmt_block
+              { $$ = $1; }
+            | decl
+              { $$ = stmt_create_decl($1); }
+            | expr TOKEN_SEMI
+              { $$ = stmt_create_expr($1); }
+            | TOKEN_SEMI
+              { $$ = NULL; }
+            ;
 
 stmt_block : TOKEN_LBRACE stmt_list TOKEN_RBRACE
              { $$ = stmt_create_block($2); }
            ;
+
+// FIXME: change this to use left-recursion (bison handles left-recursion better than right-recursion)
+stmt_list : stmt stmt_list
+            { $$ = $1; $1->next = $2; }
+          | /* epsilon */
+            { $$ = NULL; }
+          ;
+
 
 args : expr
          { $$ = expr_create_arg($1, 0); }
@@ -186,18 +222,17 @@ maybe_expr : expr
              { $$ = NULL; }
            ;
 
-// FIXME: change this to use left-recursion (bison handles left-recursion better than right-recursion)
-stmt_list : stmt stmt_list
-            { $$ = $1; $1->next = $2; }
-          | /* epsilon */
-            { $$ = NULL; }
-          ;
-
-expr : expr TOKEN_LOGICAL_OR expr1
+expr : expr TOKEN_LOGICAL_OR expr0
        { $$ = expr_create(EXPR_LOGICAL_OR, $1, $3); }
-     | expr1
+     | expr0
        { $$ = $1; }
      ;
+
+expr0 : expr0 TOKEN_ASSIGN expr1
+        { $$ = expr_create(EXPR_ASSIGN, $1, $3); }
+      | expr1
+        { $$ = $1; }
+      ;
 
 expr1 : expr1 TOKEN_LOGICAL_AND expr2
         { $$ = expr_create(EXPR_LOGICAL_AND, $1, $3); }
@@ -251,8 +286,6 @@ term: term TOKEN_MULTIPLY factor
 
 factor : TOKEN_LPAREN expr TOKEN_RPAREN
          { $$ = $2; }
-       | TOKEN_LBRACE args TOKEN_RBRACE
-         { $$ = expr_create_init_list($2); }
        | TOKEN_MINUS factor
          { $$ = expr_create(EXPR_NEGATE, $2, 0); }
        | TOKEN_LOGICAL_NOT factor

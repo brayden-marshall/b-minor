@@ -63,6 +63,18 @@ struct stmt* stmt_create_for(
     );
 }
 
+struct stmt* stmt_create_decl(struct decl* decl) {
+    return stmt_create(
+        STMT_DECL, decl, 0, 0, 0, 0, 0, 0
+    );
+}
+
+struct stmt* stmt_create_expr(struct expr* expr) {
+    return stmt_create(
+        STMT_EXPR, 0, 0, expr, 0, 0, 0, 0
+    );
+}
+
 void indent_print(char* string, int level);
 void _stmt_print(struct stmt* s, int indent);
 void body_print(struct stmt *body, int indent_level, int indent_first);
@@ -105,6 +117,7 @@ void _stmt_print(struct stmt* s, int indent) {
         case STMT_EXPR:
             indent_print("", indent);
             expr_print(s->expr);
+            printf(";\n");
             break;
         case STMT_IF_ELSE:
             indent_print("if (", indent);

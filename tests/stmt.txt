@@ -1,4 +1,9 @@
 fn: function void () = {
+    x: integer;
+    x = 6;
+
+    y: integer = 7;
+
     if (true) return true;
 
     if ("hello") {
@@ -8,6 +13,26 @@ fn: function void () = {
 
     if (10 + 7 * (100 - 11)) {
         return 100;
+    }
+
+    if (true) {
+        return 1;
+    } else {
+        return 6;
+    }
+
+    if (testing) {
+        x = 1;
+        if (6) {
+            x = 2;
+        } else {
+            if (true) {
+                x = 3;
+            } else {
+                x = 4;
+            }
+        }
+        x = 5;
     }
 
     for (;;) {

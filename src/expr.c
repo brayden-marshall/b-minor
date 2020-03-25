@@ -95,6 +95,9 @@ void expr_print(struct expr* e) {
         case EXPR_MODULO:
             printf(" %% ");
             break;
+        case EXPR_ASSIGN:
+            printf(" = ");
+            break;
         case EXPR_NEGATE:
             printf("-");
             expr_print(e->left);

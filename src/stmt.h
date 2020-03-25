@@ -8,7 +8,7 @@ typedef enum {
     STMT_FOR,
     STMT_PRINT,
     STMT_RETURN,
-    STMT_BLOCK
+    STMT_BLOCK,
 } stmt_t;
 
 struct stmt {
@@ -47,6 +47,10 @@ struct stmt* stmt_create_block(struct stmt* body);
 struct stmt* stmt_create_return(struct expr* expr);
 
 struct stmt* stmt_create_print(struct expr* expr);
+
+struct stmt* stmt_create_decl(struct decl* decl);
+
+struct stmt* stmt_create_expr(struct expr* expr);
 
 void stmt_print(struct stmt* s);
 
