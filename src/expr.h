@@ -6,6 +6,7 @@ typedef enum {
     EXPR_SUB,
     EXPR_MUL,
     EXPR_DIV,
+    EXPR_MODULO,
     EXPR_NAME,
 
     EXPR_CHAR_LITERAL,
@@ -44,6 +45,10 @@ struct expr* expr_create_string_literal(const char* str);
 struct expr* expr_create_arg(struct expr* expr, struct expr* next);
 
 struct expr* expr_create_init_list(struct expr* args);
+
+struct expr* expr_create_call(const char* name, struct expr* args);
+
+struct expr* expr_create_subscript(const char* array_name, struct expr* at);
 
 void expr_print(struct expr* e);
 

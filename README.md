@@ -7,7 +7,6 @@
     - f()
     - ++
     - --
-    - -
     - !
     - ^
     - %
@@ -25,7 +24,7 @@
 1 has highest precedence
 
 - precedence 1:
-    - `[]`      (subscript)
+    - `arr[]`   (subscript)
     - `f()`     (function call)
     - `++`      (postfix increment)
     - `--`      (postfix decrement)

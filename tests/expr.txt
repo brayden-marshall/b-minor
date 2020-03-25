@@ -7,3 +7,15 @@ nountod:    integer = 100 * (10 - (8 + 2) / (167-1));
 test_empty_init_list: array [] integer = {};
 test_one_init_list: array [] integer = {"Hello"};
 test_init_list: array [] integer = {1, 2, 'c', 4, true, hello};
+
+modulo_test: integer = 100 % 10;
+
+function_call_empty_test: integer = fu_2323_HUHU();
+
+function_call_one_arg_test: integer = fu_2323_HUHU(10-1);
+
+function_call_with_args_test: integer = fu_2323_HUHU(10-1, "hello", 'c', test());
+
+subscript_test: char = arr[seventy * 2];
+
+subscript_nested_test: string = arr1[arr2[arr3[7]]];

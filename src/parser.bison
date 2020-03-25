@@ -98,7 +98,7 @@ struct decl* decl_list_last = NULL;
 
 %type <decl> program decl_list decl
 %type <stmt> stmt_list stmt stmt_block for_expr
-%type <expr> expr term factor maybe_expr args
+%type <expr> expr term factor maybe_expr args unary_expr
 %type <type> type atomic_type
 %type <param_list> param_list param
 %type <ident> ident
@@ -205,18 +205,28 @@ term : term TOKEN_MULTIPLY factor
        { $$ = expr_create(EXPR_MUL, $1, $3); }
      | term TOKEN_DIVIDE factor
        { $$ = expr_create(EXPR_DIV, $1, $3); }
-     | factor
+     | term TOKEN_MODULO factor
+       { $$ = expr_create(EXPR_MODULO, $1, $3); }
+     | unary_expr
        { $$ = $1; }
      ;
+
+unary_expr : TOKEN_MINUS factor
+             { $$ = expr_create(EXPR_SUB, expr_create_integer_literal(0), $2); }
+           | factor
+             { $$ = $1; }
+           ;
 
 factor : TOKEN_LPAREN expr TOKEN_RPAREN
          { $$ = $2; }
        | TOKEN_LBRACE args TOKEN_RBRACE
          { $$ = expr_create_init_list($2); }
-       | TOKEN_MINUS factor
-         { $$ = expr_create(EXPR_SUB, expr_create_integer_literal(0), $2); }
        | ident
          { $$ = expr_create_name($1); }
+       | ident TOKEN_LPAREN args TOKEN_RPAREN
+         { $$ = expr_create_call($1, $3); }
+       | ident TOKEN_LBRACKET expr TOKEN_RBRACKET
+         { $$ = expr_create_subscript($1, $3); }
        | TOKEN_INTEGER_LITERAL
          { $$ = expr_create_integer_literal(atoi(yytext)); } 
        | TOKEN_CHAR_LITERAL

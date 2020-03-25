@@ -52,6 +52,14 @@ struct expr* expr_create_init_list(struct expr* args) {
     return expr_create(EXPR_INIT_LIST, 0, args);
 }
 
+struct expr* expr_create_call(const char* name, struct expr* args) {
+    return expr_create(EXPR_CALL, expr_create_name(name), args);
+}
+
+struct expr* expr_create_subscript(const char* array_name, struct expr* at) {
+    return expr_create(EXPR_SUBSCRIPT, expr_create_name(array_name), at);
+}
+
 void expr_print(struct expr* e) {
     if (!e) return;
 
@@ -71,6 +79,9 @@ void expr_print(struct expr* e) {
         case EXPR_DIV:
             printf(" / ");
             break;
+        case EXPR_MODULO:
+            printf(" %% ");
+            break;
         case EXPR_NAME:
             printf("%s", e->name);
             break;
@@ -87,7 +98,10 @@ void expr_print(struct expr* e) {
             printf("%s", e->integer_value ? "true" : "false");
             break;
         case EXPR_CALL:
-            printf("FIXME: expr_print EXPR_CALL\n");
+            print_right = 0;
+            printf("(");
+            expr_print(e->right);
+            printf(")");
             break;
         case EXPR_INIT_LIST:
             print_right = 0;
@@ -101,7 +115,10 @@ void expr_print(struct expr* e) {
             }
             break;
         case EXPR_SUBSCRIPT:
-            printf("FIXME: expr_print EXPR_SUBSCRIPT\n");
+            print_right = 0;
+            printf("[");
+            expr_print(e->right);
+            printf("]");
             break;
     }
 
