@@ -1,11 +1,21 @@
-hello:      integer = 1 + 7;
-testing:    integer = 7 - 1;
-ntoeuhnto:  integer = 7 * 1;
-oteuhnth:   integer = 100 / 0;
-onudnh:     integer = -42;
-nountod:    integer = 100 * (10 - (8 + 2) / (167-1));
+addition_test:      integer = 1 + 7;
+
+subtraction_test:    integer = 7 - 1;
+
+multiplication_test:  integer = 7 * 1;
+
+division_test:   integer = 100 / 0;
+
+exponent_test: integer = 2 ^ 31;
+
+negation_test:     integer = -42;
+
+arithmetic_expression_test:    integer = 100 * (10 - (8 + 2) / (167-1));
+
 test_empty_init_list: array [] integer = {};
+
 test_one_init_list: array [] integer = {"Hello"};
+
 test_init_list: array [] integer = {1, 2, 'c', 4, true, hello};
 
 modulo_test: integer = 100 % 10;
@@ -19,3 +29,27 @@ function_call_with_args_test: integer = fu_2323_HUHU(10-1, "hello", 'c', test())
 subscript_test: char = arr[seventy * 2];
 
 subscript_nested_test: string = arr1[arr2[arr3[7]]];
+
+increment_test: integer = x++ + x++;
+
+decrement_test: integer = x-- - x--;
+
+logical_or_test: boolean = testing || 2 || "hello";
+
+logical_and_test: boolean = x && 7 && true;
+
+logical_not_test: boolean = !x;
+
+logical_not_multiple_test: boolean = !!!!!x;
+
+equal_test: boolean = x == true == false;
+
+not_equal_test: boolean = "hello" != 6 != other;
+
+gt_test: boolean = x > 7;
+
+gt_equal_test: boolean = 7 > 0;
+
+lt_test: boolean = x < 'c';
+
+lt_equal_test: boolean = x <= false;

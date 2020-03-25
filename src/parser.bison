@@ -48,7 +48,7 @@
 // logical operators
 %token TOKEN_LOGICAL_AND
 %token TOKEN_LOGICAL_OR
-%token TOKEN_LOGICAL_NEGATE
+%token TOKEN_LOGICAL_NOT
 
 // literals
 %token TOKEN_INTEGER_LITERAL
@@ -98,7 +98,7 @@ struct decl* decl_list_last = NULL;
 
 %type <decl> program decl_list decl
 %type <stmt> stmt_list stmt stmt_block for_expr
-%type <expr> expr term factor maybe_expr args unary_expr
+%type <expr> expr expr1 expr2 expr3 expr4 expr5 term factor maybe_expr args
 %type <type> type atomic_type
 %type <param_list> param_list param
 %type <ident> ident
@@ -193,40 +193,80 @@ stmt_list : stmt stmt_list
             { $$ = NULL; }
           ;
 
-expr : expr TOKEN_PLUS term
-       { $$ = expr_create(EXPR_ADD, $1, $3); }
-     | expr TOKEN_MINUS term
-       { $$ = expr_create(EXPR_SUB, $1, $3); }
-     | term
+expr : expr TOKEN_LOGICAL_OR expr1
+       { $$ = expr_create(EXPR_LOGICAL_OR, $1, $3); }
+     | expr1
        { $$ = $1; }
      ;
 
-term : term TOKEN_MULTIPLY factor
+expr1 : expr1 TOKEN_LOGICAL_AND expr2
+        { $$ = expr_create(EXPR_LOGICAL_AND, $1, $3); }
+      | expr2
+        { $$ = $1; }
+      ;
+
+expr2 : expr2 TOKEN_CMP_EQUAL expr3
+        { $$ = expr_create(EXPR_CMP_EQUAL, $1, $3); }
+      | expr2 TOKEN_CMP_NOT_EQUAL expr3
+        { $$ = expr_create(EXPR_CMP_NOT_EQUAL, $1, $3); }
+      | expr3
+        { $$ = $1; }
+      ;
+
+expr3 : expr3 TOKEN_CMP_GT expr4
+        { $$ = expr_create(EXPR_CMP_GT, $1, $3); }
+      | expr3 TOKEN_CMP_GT_EQUAL expr4
+        { $$ = expr_create(EXPR_CMP_GT_EQUAL, $1, $3); }
+      | expr3 TOKEN_CMP_LT expr4
+        { $$ = expr_create(EXPR_CMP_LT, $1, $3); }
+      | expr3 TOKEN_CMP_LT_EQUAL expr4
+        { $$ = expr_create(EXPR_CMP_LT_EQUAL, $1, $3); }
+      | expr4
+        { $$ = $1; }
+      ;
+
+expr4 : expr4 TOKEN_PLUS expr5
+        { $$ = expr_create(EXPR_ADD, $1, $3); }
+      | expr4 TOKEN_MINUS expr5
+        { $$ = expr_create(EXPR_SUB, $1, $3); }
+      | expr5
+        { $$ = $1; }
+      ;
+
+expr5 : expr5 TOKEN_EXPONENT term
+        { $$ = expr_create(EXPR_EXPONENT, $1, $3); }
+      | term
+        { $$ = $1; }
+      ;
+
+term: term TOKEN_MULTIPLY factor
        { $$ = expr_create(EXPR_MUL, $1, $3); }
      | term TOKEN_DIVIDE factor
        { $$ = expr_create(EXPR_DIV, $1, $3); }
      | term TOKEN_MODULO factor
        { $$ = expr_create(EXPR_MODULO, $1, $3); }
-     | unary_expr
+     | factor
        { $$ = $1; }
      ;
-
-unary_expr : TOKEN_MINUS factor
-             { $$ = expr_create(EXPR_SUB, expr_create_integer_literal(0), $2); }
-           | factor
-             { $$ = $1; }
-           ;
 
 factor : TOKEN_LPAREN expr TOKEN_RPAREN
          { $$ = $2; }
        | TOKEN_LBRACE args TOKEN_RBRACE
          { $$ = expr_create_init_list($2); }
+       | TOKEN_MINUS factor
+         { $$ = expr_create(EXPR_NEGATE, $2, 0); }
+       | TOKEN_LOGICAL_NOT factor
+         { $$ = expr_create(EXPR_LOGICAL_NOT, $2, 0); }
        | ident
          { $$ = expr_create_name($1); }
        | ident TOKEN_LPAREN args TOKEN_RPAREN
          { $$ = expr_create_call($1, $3); }
        | ident TOKEN_LBRACKET expr TOKEN_RBRACKET
          { $$ = expr_create_subscript($1, $3); }
+       | ident TOKEN_INCREMENT
+         { $$ = expr_create_increment($1); }
+       | ident TOKEN_DECREMENT
+         { $$ = expr_create_decrement($1); }
        | TOKEN_INTEGER_LITERAL
          { $$ = expr_create_integer_literal(atoi(yytext)); } 
        | TOKEN_CHAR_LITERAL

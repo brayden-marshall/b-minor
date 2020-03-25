@@ -60,10 +60,20 @@ struct expr* expr_create_subscript(const char* array_name, struct expr* at) {
     return expr_create(EXPR_SUBSCRIPT, expr_create_name(array_name), at);
 }
 
+struct expr* expr_create_increment(const char* name) {
+    return expr_create(EXPR_INCREMENT, expr_create_name(name), 0);
+}
+
+struct expr* expr_create_decrement(const char* name) {
+    return expr_create(EXPR_DECREMENT, expr_create_name(name), 0);
+}
+
 void expr_print(struct expr* e) {
     if (!e) return;
 
-    expr_print(e->left);
+    if (e->kind != EXPR_LOGICAL_NOT && e->kind != EXPR_NEGATE) {
+        expr_print(e->left);
+    }
 
     int print_right = 1;
     switch (e->kind) {
@@ -79,8 +89,49 @@ void expr_print(struct expr* e) {
         case EXPR_DIV:
             printf(" / ");
             break;
+        case EXPR_EXPONENT:
+            printf(" ^ ");
+            break;
         case EXPR_MODULO:
             printf(" %% ");
+            break;
+        case EXPR_NEGATE:
+            printf("-");
+            expr_print(e->left);
+            break;
+        case EXPR_LOGICAL_OR:
+            printf(" || ");
+            break;
+        case EXPR_LOGICAL_AND:
+            printf(" && ");
+            break;
+        case EXPR_LOGICAL_NOT:
+            printf("!");
+            expr_print(e->left);
+            break;
+        case EXPR_CMP_EQUAL:
+            printf(" == ");
+            break;
+        case EXPR_CMP_NOT_EQUAL:
+            printf(" != ");
+            break;
+        case EXPR_CMP_GT:
+            printf(" > ");
+            break;
+        case EXPR_CMP_GT_EQUAL:
+            printf(" >= ");
+            break;
+        case EXPR_CMP_LT:
+            printf(" < ");
+            break;
+        case EXPR_CMP_LT_EQUAL:
+            printf(" <= ");
+            break;
+        case EXPR_INCREMENT:
+            printf("++");
+            break;
+        case EXPR_DECREMENT:
+            printf("--");
             break;
         case EXPR_NAME:
             printf("%s", e->name);

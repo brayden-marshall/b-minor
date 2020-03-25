@@ -39,7 +39,7 @@ IDENT       [a-zA-Z_0-9]
 
 "&&"                    return TOKEN_LOGICAL_AND;
 "||"                    return TOKEN_LOGICAL_OR;
-"!"                     return TOKEN_LOGICAL_NEGATE;
+"!"                     return TOKEN_LOGICAL_NOT;
 
 "+"                     return TOKEN_PLUS;
 "-"                     return TOKEN_MINUS;

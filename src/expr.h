@@ -2,22 +2,44 @@
 #define EXPR_H
 
 typedef enum {
+    // arithmetic operations
     EXPR_ADD = 0,
     EXPR_SUB,
     EXPR_MUL,
     EXPR_DIV,
+    EXPR_EXPONENT,
     EXPR_MODULO,
     EXPR_NAME,
+    EXPR_NEGATE,
 
+    // logical operations
+    EXPR_LOGICAL_OR,
+    EXPR_LOGICAL_AND,
+    EXPR_LOGICAL_NOT,
+
+    // comparison operations
+    EXPR_CMP_EQUAL,
+    EXPR_CMP_NOT_EQUAL,
+    EXPR_CMP_GT,
+    EXPR_CMP_GT_EQUAL,
+    EXPR_CMP_LT,
+    EXPR_CMP_LT_EQUAL,
+
+    // literals
     EXPR_CHAR_LITERAL,
     EXPR_STRING_LITERAL,
     EXPR_INTEGER_LITERAL,
     EXPR_BOOLEAN_LITERAL,
 
+    // other
     EXPR_CALL,
     EXPR_INIT_LIST,
     EXPR_ARG,
     EXPR_SUBSCRIPT,
+
+    EXPR_INCREMENT,
+    EXPR_DECREMENT,
+
 } expr_t;
 
 struct expr {
@@ -49,6 +71,10 @@ struct expr* expr_create_init_list(struct expr* args);
 struct expr* expr_create_call(const char* name, struct expr* args);
 
 struct expr* expr_create_subscript(const char* array_name, struct expr* at);
+
+struct expr* expr_create_increment(const char* name);
+
+struct expr* expr_create_decrement(const char* name);
 
 void expr_print(struct expr* e);
 
