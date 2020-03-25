@@ -1,7 +1,5 @@
 ## TODO
 
-- implement parsing for the else portion of if-else statements
-
 ## Operator Precedence Table
 
 1 has highest precedence

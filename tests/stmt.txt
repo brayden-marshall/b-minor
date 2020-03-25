@@ -35,6 +35,8 @@ fn: function void () = {
         x = 5;
     }
 
+    if (true) 6; else 7;
+
     for (;;) {
     }
 

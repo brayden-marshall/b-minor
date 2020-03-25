@@ -153,7 +153,6 @@ ident : TOKEN_IDENT
        { $$ = strdup(yytext); }
      ;
 
-
 stmt : open_stmt
        { $$ = $1; }
      | closed_stmt
