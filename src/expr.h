@@ -42,7 +42,6 @@ typedef enum {
 
     EXPR_INCREMENT,
     EXPR_DECREMENT,
-
 } expr_t;
 
 struct expr {
