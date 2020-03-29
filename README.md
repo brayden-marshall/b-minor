@@ -1,5 +1,12 @@
 ## TODO
 
+- custom varargs print function for error printing
+
+- Typechecking:
+    - proper typechecking when assigning to an empty initializer list
+    - go back over typechecking code and make sure behaviour is consistent
+    - more test cases
+
 ## Operator Precedence Table
 
 1 has highest precedence
