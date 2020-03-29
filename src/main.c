@@ -5,6 +5,7 @@
 #include "decl.h"
 #include "stmt.h"
 #include "type.h"
+#include "typecheck.h"
 #include "param_list.h"
 #include "scope.h"
 #include "hash_table.h"
@@ -33,8 +34,8 @@ int main(int argc, char** argv) {
         return EXIT_FAILURE;
     }
 
-    // print out token values
 #if DEBUG
+    // print out token values
     printf("token values are:\n");
     enum yytokentype t;
     while ((t = yylex())) {
@@ -57,6 +58,8 @@ int main(int argc, char** argv) {
 
     scope_stack[0] = hash_table_create(0, 0);
     decl_resolve(parser_result);
+
+    decl_typecheck(parser_result);
 
     fclose(yyin);
 

@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <assert.h>
 #include <stdio.h>
 
 #include "typecheck.h"
@@ -8,7 +9,7 @@
 #include "stmt.h"
 
 int type_equals(struct type* a, struct type* b) {
-    if (a->kind != b->kind) {
+    if (!a || !b || a->kind != b->kind) {
         return 0;
     }
 
@@ -24,18 +25,19 @@ int type_equals(struct type* a, struct type* b) {
         case TYPE_FUNCTION:
             return type_equals(a->subtype, b->subtype)
                     && param_list_equals(a->params, b->params);
+        default:
+            printf("enum case not handled.");
+            assert(0);
     }
-
-    return 0;
 }
 
 struct type* type_copy(struct type* t) {
     if (!t) return 0;
     struct type* new_t = type_create(t->kind);
 
-    new_t->subtype = type_copy(t);
+    new_t->subtype = type_copy(t->subtype);
 
-    return t;
+    return new_t;
 }
 
 void type_delete(struct type* t) {
@@ -43,6 +45,7 @@ void type_delete(struct type* t) {
 
     type_delete(t->subtype);
     param_list_delete(t->params);
+    free(t);
 }
 
 void decl_typecheck(struct decl* d) {
@@ -52,13 +55,15 @@ void decl_typecheck(struct decl* d) {
         struct type* t;
         t = expr_typecheck(d->value);
         if (!type_equals(t, d->symbol->type)) {
-            printf("Type error: cannot assign to variable of a different type.\n");
+            printf("Type error on symbol '%s': cannot assign to variable of a different type.\n", d->symbol->name);
         }
     }
 
     if (d->code) {
         stmt_typecheck(d->code);
     }
+
+    decl_typecheck(d->next);
 }
 
 void stmt_typecheck(struct stmt* s) {
@@ -82,16 +87,22 @@ void stmt_typecheck(struct stmt* s) {
             stmt_typecheck(s->else_body);
             break;
         case STMT_FOR:
-            printf("FIXME: stmt_typecheck for STMT_FOR.\n");
+            t = expr_typecheck(s->expr);
+            if (t->kind != TYPE_BOOLEAN) {
+                printf("Type error: if statement expression must be a boolean.\n");
+            }
+
+            type_delete(t);
+            stmt_typecheck(s->body);
             break;
         case STMT_PRINT:
-            printf("FIXME: stmt_typecheck for PRINT.\n");
+            expr_typecheck(s->expr);
             break;
         case STMT_RETURN:
-            printf("FIXME: stmt_typecheck for RETURN.\n");
+            expr_typecheck(s->expr);
             break;
         case STMT_BLOCK:
-            printf("FIXME: stmt_typecheck for STMT_BLOCK.\n");
+            stmt_typecheck(s->body);
             break;
     }
 }
@@ -102,7 +113,7 @@ struct type* expr_typecheck(struct expr* e) {
     struct type* lt = expr_typecheck(e->left);
     struct type* rt = expr_typecheck(e->right);
 
-    struct type* result;
+    struct type* result = NULL;
 
     switch (e->kind) {
         case EXPR_ADD:
@@ -117,10 +128,30 @@ struct type* expr_typecheck(struct expr* e) {
             result = type_create(TYPE_INTEGER);
             break;
         case EXPR_NAME:
+            if (e->symbol == NULL) {
+                printf("e->symbol is NULL for expression with name: '%s'\n", e->name);
+            }
+            assert(e->symbol != NULL);
+            result = type_copy(e->symbol->type);
+            break;
         case EXPR_NEGATE:
+            if (lt->kind != TYPE_INTEGER) {
+                printf("Type error: cannot negate a non-integer.\n");
+            }
+            result = type_create(TYPE_INTEGER);
+            break;
         case EXPR_LOGICAL_OR:
         case EXPR_LOGICAL_AND:
+            if (lt->kind != TYPE_BOOLEAN || rt->kind != TYPE_BOOLEAN) {
+                printf("Type error: cannot perform logical operation on non-boolean.\n");
+            }
+            result = type_create(TYPE_BOOLEAN);
+            break;
         case EXPR_LOGICAL_NOT:
+            if (lt->kind != TYPE_BOOLEAN) {
+                printf("Type error: cannot logically negate a non-boolean.\n");
+            }
+            result = type_create(TYPE_BOOLEAN);
             break;
         case EXPR_CMP_EQUAL:
         case EXPR_CMP_NOT_EQUAL:
@@ -138,10 +169,14 @@ struct type* expr_typecheck(struct expr* e) {
         case EXPR_CMP_GT_EQUAL:
         case EXPR_CMP_LT:
         case EXPR_CMP_LT_EQUAL:
+            if (lt->kind != TYPE_INTEGER || rt->kind != TYPE_INTEGER) {
+                printf("Type error: cannot relative compare non-integer types.\n");
+            }
+            result = type_create(TYPE_BOOLEAN);
             break;
-
         case EXPR_CHAR_LITERAL:
             result = type_create(TYPE_CHAR);
+            break;
         case EXPR_STRING_LITERAL:
             result = type_create(TYPE_STRING);
             break;
@@ -151,10 +186,15 @@ struct type* expr_typecheck(struct expr* e) {
         case EXPR_BOOLEAN_LITERAL:
             result = type_create(TYPE_BOOLEAN);
             break;
-
         case EXPR_CALL:
+            // subtype is the return type of the function being called
+            result = type_copy(lt->subtype);
+            break;
         case EXPR_INIT_LIST:
+            result = type_create_array(type_copy(rt), 0);
+            break;
         case EXPR_ARG:
+            result = type_copy(lt);
             break;
         case EXPR_SUBSCRIPT:
             if (lt->kind == TYPE_ARRAY) {
@@ -168,14 +208,28 @@ struct type* expr_typecheck(struct expr* e) {
             }
             break;
         case EXPR_ASSIGN:
-
+            if (lt->kind != rt->kind) {
+                printf("Type error: cannot assign to a variable of a different type.\n");
+            }
+            result = type_copy(lt);
+            break;
         case EXPR_INCREMENT:
+            if (lt->kind != TYPE_INTEGER) {
+                printf("Type error: cannot use increment operator on non-integer.\n");
+            }
+            result = type_create(TYPE_INTEGER);
+            break;
         case EXPR_DECREMENT:
+            if (lt->kind != TYPE_INTEGER) {
+                printf("Type error: cannot use decrement operator on non-integer.\n");
+            }
+            result = type_create(TYPE_INTEGER);
             break;
     }
 
     type_delete(lt);
     type_delete(rt);
 
+    assert(result != NULL);
     return result;
 }

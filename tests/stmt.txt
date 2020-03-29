@@ -1,14 +1,14 @@
-fn: function void () = {
+fn: function integer () = {
     x: integer;
     x = 6;
 
     y: integer = 7;
 
-    if (true) return true;
+    if (true) return 1;
 
     if ("hello") {
-        return "testing";
-        return false;
+        return 1;
+        return 2;
     }
 
     if (10 + 7 * (100 - 11)) {

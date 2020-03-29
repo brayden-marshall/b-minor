@@ -11,7 +11,7 @@ static int scope_stack_top = 0;
 
 void scope_enter() {
     scope_stack_top++;
-    if (scope_stack_top >= sizeof(scope_stack)/sizeof(scope_stack[0])) {
+    if ((unsigned int)scope_stack_top >= sizeof(scope_stack)/sizeof(scope_stack[0])) {
         printf("Maximum scope level reached.\n");
         printf("I'm so sorry for your loss.\n");
         exit(1);
@@ -40,7 +40,7 @@ void scope_bind(const char* name, struct symbol* sym) {
 struct symbol* scope_lookup(const char* name) {
     int current_level = scope_stack_top;
     struct symbol* s = NULL;
-    while (s == NULL && current_level > 0) {
+    while (s == NULL && current_level >= 0) {
         s = hash_table_lookup(scope_stack[current_level], name);
         current_level--;
     }
@@ -77,6 +77,9 @@ void expr_resolve(struct expr* e) {
 
     if (e->kind == EXPR_NAME) {
         e->symbol = scope_lookup(e->name);
+        if (e->symbol == NULL) {
+            printf("Identifier %s used before definition.\n", e->name);
+        }
     } else {
         expr_resolve(e->left);
         expr_resolve(e->right);

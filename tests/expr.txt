@@ -14,44 +14,56 @@ arithmetic_expression_test:    integer = 100 * (10 - (8 + 2) / (167-1));
 
 test_empty_init_list: array [] integer = {};
 
-test_one_init_list: array [] integer = {"Hello"};
+test_one_init_list: array [] integer = {1};
 
-test_init_list: array [] integer = {1, 2, 'c', 4, true, hello};
+test_init_list: array [] integer = {1, 2, 3, 4, 5, 6};
 
 modulo_test: integer = 100 % 10;
 
-function_call_empty_test: integer = fu_2323_HUHU();
+test_fn_0: function integer () = { return 1; }
+test_fn_1: function integer (x: integer) = { return 1; }
+test_fn_4: function integer (x: integer, y: string, z: boolean, huh: char) = { return 1; }
 
-function_call_one_arg_test: integer = fu_2323_HUHU(10-1);
+function_call_empty_test: integer = test_fn_0();
 
-function_call_with_args_test: integer = fu_2323_HUHU(10-1, "hello", 'c', test());
+function_call_one_arg_test: integer = test_fn_1(10-1);
 
-subscript_test: char = arr[seventy * 2];
+function_call_with_args_test: integer = test_fn_4(test_fn_0(), "test", true, 'c');
 
-subscript_nested_test: string = arr1[arr2[arr3[7]]];
+arr: array [] integer;
+subscript_test: integer = arr[10 * 2];
 
+arr1: array [] integer;
+arr2: array [] integer;
+arr3: array [] integer;
+subscript_nested_test: integer = arr1[arr2[arr3[7]]];
+
+x: integer = 7;
+testing: integer = 7;
+other: integer = 7;
+b: boolean = true;
 increment_test: integer = x++ + x++;
 
 decrement_test: integer = x-- - x--;
 
-logical_or_test: boolean = testing || 2 || "hello";
+logical_not_test: boolean = !b;
 
-logical_and_test: boolean = x && 7 && true;
+logical_not_multiple_test: boolean = !!!!!b;
 
-logical_not_test: boolean = !x;
+logical_or_test: boolean = b || !b || true;
 
-logical_not_multiple_test: boolean = !!!!!x;
+logical_and_test: boolean = b && false && true;
 
-equal_test: boolean = x == true == false;
+equal_test: boolean = true == false;
 
-not_equal_test: boolean = "hello" != 6 != other;
+not_equal_test: string = "hello" != "test" != "testing";
 
 gt_test: boolean = x > 7;
 
 gt_equal_test: boolean = 7 > 0;
 
-lt_test: boolean = x < 'c';
+lt_test: boolean = x < 1;
 
-lt_equal_test: boolean = x <= false;
+lt_equal_test: boolean = x <= 10;
 
 assignment_test: integer = x = 6;

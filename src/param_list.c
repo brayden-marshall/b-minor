@@ -23,6 +23,7 @@ void param_list_delete(struct param_list* p) {
     type_delete(p->type);
     free(p->name);
     param_list_delete(p->next);
+    free(p);
 }
 
 void param_list_print(struct param_list* p) {

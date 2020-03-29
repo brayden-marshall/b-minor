@@ -1,5 +1,5 @@
 make
-echo ""
 if [[ $? == 0 ]]; then
-    ./bin/chapter6 $1
+    echo ""
+    ./bin/b-minor $1
 fi
