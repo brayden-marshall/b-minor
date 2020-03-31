@@ -56,7 +56,7 @@ logical_and_test: boolean = b && false && true;
 
 equal_test: boolean = true == false;
 
-not_equal_test: string = "hello" != "test" != "testing";
+not_equal_test: boolean = "hello" != "test" != true;
 
 gt_test: boolean = x > 7;
 

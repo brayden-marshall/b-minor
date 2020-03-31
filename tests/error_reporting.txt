@@ -22,7 +22,7 @@ test: function void () = {
     _test[10];
 
     // should get 'cannot assign to a variable of a different type'
-    hello: string = 'c';
+    testcharacter: string = 'c';
 
     // should get 'cannot increment a non-integer'
     arr++;
@@ -54,4 +54,14 @@ test: function void () = {
     // should get 'cannot compare values of non-atomic types'
     arr == arr;
     fn1 != fn2;
+
+    // should get 'can only relative compare integers'
+    true < false;
+    10 <= "string";
+    'c' > 1;
+    false >= 17;
+
+    // should get 'cannot assign to variable of a different type
+    blahblahblah: string;
+    blahblahblah = 7;
 }

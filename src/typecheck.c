@@ -42,7 +42,6 @@ void error_print(const char* fmt, ...) {
         fmt++;
     }
 
-    //putchar('\n');
     va_end(args);
 }
 
@@ -94,7 +93,7 @@ void decl_typecheck(struct decl* d) {
         struct type* t;
         t = expr_typecheck(d->value);
         if (!type_equals(t, d->symbol->type)) {
-            error_print("Type error: cannot assign expression (%E), which is of type (%T) to variable '%s', which is of type (%T).\n", d->value, t, d->name, d->symbol->type);
+            error_print("Type error: cannot assign to a variable of a different type.\n\tGot declaration (%s: %T = %E), which is of type (%T) = (%T).\n", d->name, d->symbol->type, d->value, d->symbol->type, t);
         }
     }
 
@@ -129,7 +128,8 @@ void stmt_typecheck(struct stmt* s) {
             break;
         case STMT_FOR:
             t = expr_typecheck(s->expr);
-            if (t->kind != TYPE_BOOLEAN) {
+
+            if (t == NULL || t->kind != TYPE_BOOLEAN) {
                 error_print("Type error: for loop condition must be a boolean.\n\tGot expression (%E), which is of type (%T)\n", s->expr, t);
             }
 
@@ -181,7 +181,7 @@ struct type* expr_typecheck(struct expr* e) {
             break;
         case EXPR_NEGATE:
             if (lt->kind != TYPE_INTEGER) {
-                error_print("Type error: negate operator requries an integer, got %T.\n", lt);
+                error_print("Type error: negate operator requries an integer.\n\tGot expression (%E), which is of type (%T).\n", lt);
             }
             result = type_create(TYPE_INTEGER);
             break;
@@ -216,7 +216,7 @@ struct type* expr_typecheck(struct expr* e) {
         case EXPR_CMP_LT:
         case EXPR_CMP_LT_EQUAL:
             if (lt->kind != TYPE_INTEGER || rt->kind != TYPE_INTEGER) {
-                printf("Type error: cannot relative compare non-integer types.\n");
+                error_print("Type error: cannot use relative comparison operators on non-integer types.\n\tGot expression (%E), with operands of type (%T), (%T)\n", e, lt, rt);
             }
             result = type_create(TYPE_BOOLEAN);
             break;
@@ -245,29 +245,29 @@ struct type* expr_typecheck(struct expr* e) {
         case EXPR_SUBSCRIPT:
             if (lt->kind == TYPE_ARRAY) {
                 if (rt->kind != TYPE_INTEGER) {
-                    printf("Type error: array subscript must be an integer.\n");
+                    error_print("Type error: array subscript must be an integer.\n\tGot expression (%E), which is of type (%T).\n", e->right, rt);
                 }
                 result = type_copy(lt->subtype);
             } else {
-                printf("Type error: subscript target is not an array.\n");
+                error_print("Type error: subscript target is not an array.\n\tGot expression (%E), which is of type (%T)\n", e->left, lt);
                 result = type_copy(lt);
             }
             break;
         case EXPR_ASSIGN:
             if (lt->kind != rt->kind) {
-                printf("Type error: cannot assign to a variable of a different type.\n");
+                error_print("Type error: cannot assign to a variable of a different type.\n\tGot expression (%E), which is of type (%T) = (%T).\n", e, lt, rt);
             }
             result = type_copy(lt);
             break;
         case EXPR_INCREMENT:
             if (lt->kind != TYPE_INTEGER) {
-                printf("Type error: cannot use increment operator on non-integer.\n");
+                error_print("Type error: cannot use increment operator on non-integer.\n\tGot expression (%E), which is of type (%T).\n", e, lt);
             }
             result = type_create(TYPE_INTEGER);
             break;
         case EXPR_DECREMENT:
             if (lt->kind != TYPE_INTEGER) {
-                printf("Type error: cannot use decrement operator on non-integer.\n");
+                error_print("Type error: cannot use decrement operator on non-integer.\n\tGot expression (%E), which is of type (%T).\n", e, lt);
             }
             result = type_create(TYPE_INTEGER);
             break;

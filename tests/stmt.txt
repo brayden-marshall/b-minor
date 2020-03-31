@@ -41,7 +41,7 @@ fn: function integer () = {
     for (;;) {
     }
 
-    for (x; (testing * 7 - (1/1)) != 6; 'c') {
+    for (x; (8 * 7 - (1/1)) != 6; 'c') {
     }
 
     print ;
