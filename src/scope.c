@@ -57,6 +57,9 @@ void decl_resolve(struct decl* d) {
 
     symbol_t kind = scope_level() > 1 ? SYMBOL_LOCAL : SYMBOL_GLOBAL;
 
+    if (scope_lookup_current(d->name) != NULL) {
+        printf("Error: Variable '%s' was redeclared.\n", d->name);
+    }
     d->symbol = symbol_create(kind, d->type, d->name);
 
     expr_resolve(d->value);
@@ -78,7 +81,7 @@ void expr_resolve(struct expr* e) {
     if (e->kind == EXPR_NAME) {
         e->symbol = scope_lookup(e->name);
         if (e->symbol == NULL) {
-            printf("Identifier %s used before definition.\n", e->name);
+            printf("Identifier '%s' used before it was declared.\n", e->name);
         }
     } else {
         expr_resolve(e->left);
@@ -100,8 +103,8 @@ void stmt_resolve(struct stmt* s) {
         expr_resolve(s->next_expr);
         stmt_resolve(s->body);
         stmt_resolve(s->else_body);
-        stmt_resolve(s->next);
     }
+    stmt_resolve(s->next);
 }
 
 void param_list_resolve(struct param_list* p) {

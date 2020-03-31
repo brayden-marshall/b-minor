@@ -6,12 +6,12 @@ fn: function integer () = {
 
     if (true) return 1;
 
-    if ("hello") {
+    if ("hello" == "sailor") {
         return 1;
         return 2;
     }
 
-    if (10 + 7 * (100 - 11)) {
+    if ((10 + 7 * (100 - 11)) == 10) {
         return 100;
     }
 
@@ -21,9 +21,10 @@ fn: function integer () = {
         return 6;
     }
 
+    testing: boolean = true;
     if (testing) {
         x = 1;
-        if (6) {
+        if (testing) {
             x = 2;
         } else {
             if (true) {
@@ -40,12 +41,12 @@ fn: function integer () = {
     for (;;) {
     }
 
-    for (x; testing * 7 - (1/1); 'c') {
+    for (x; (testing * 7 - (1/1)) != 6; 'c') {
     }
 
     print ;
 
     print "Hello";
 
-    print 1, true, false, '#', "Hello", testing123;
+    print 1, true, false, '#', "Hello";
 };

@@ -39,7 +39,8 @@ void param_list_print(struct param_list* p) {
 }
 
 int param_list_equals(struct param_list* a, struct param_list* b) {
-    if ((!a || !b) && a != b) return 0;
+    if (a == b) return 1;
+    if (!a || !b) return 0;
 
     if (strcmp(a->name, b->name) != 0) {
         return 0;

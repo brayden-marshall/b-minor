@@ -1,11 +1,10 @@
 ## TODO
 
+- for some expressions we are only allowing raw identifiers (such as increment and decrement). should we allow more complex expressions yet?
+
 - custom varargs print function for error printing
 
-- Typechecking:
-    - proper typechecking when assigning to an empty initializer list
-    - go back over typechecking code and make sure behaviour is consistent
-    - more test cases
+- proper typechecking when assigning to an empty initializer list
 
 ## Operator Precedence Table
 

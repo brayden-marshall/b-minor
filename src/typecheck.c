@@ -8,6 +8,44 @@
 #include "decl.h"
 #include "stmt.h"
 
+#include <stdarg.h>
+
+void error_print(const char* fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+
+    while (*fmt != '\0') {
+        if (*fmt == '%') {
+            fmt++;
+            switch (*fmt) {
+                case 'T':
+                    type_print(va_arg(args, struct type*));
+                    break;
+                case 'E':
+                    expr_print(va_arg(args, struct expr*));
+                    break;
+                case 's':
+                    printf("%s", va_arg(args, char*));
+                    break;
+                case '%':
+                    putchar('%');
+                    break;
+                default:
+                    printf("Error in 'error_print': reached unexpected character %c after %%.\n", *fmt);
+                    exit(1);
+                    break;
+            }
+        } else {
+            putchar(*fmt);
+        }
+
+        fmt++;
+    }
+
+    //putchar('\n');
+    va_end(args);
+}
+
 int type_equals(struct type* a, struct type* b) {
     if (!a || !b || a->kind != b->kind) {
         return 0;
@@ -26,13 +64,14 @@ int type_equals(struct type* a, struct type* b) {
             return type_equals(a->subtype, b->subtype)
                     && param_list_equals(a->params, b->params);
         default:
-            printf("enum case not handled.");
+            printf("Compiler bug: enum case not handled.\n");
             assert(0);
     }
 }
 
 struct type* type_copy(struct type* t) {
-    if (!t) return 0;
+    if (!t) return NULL;
+
     struct type* new_t = type_create(t->kind);
 
     new_t->subtype = type_copy(t->subtype);
@@ -55,7 +94,7 @@ void decl_typecheck(struct decl* d) {
         struct type* t;
         t = expr_typecheck(d->value);
         if (!type_equals(t, d->symbol->type)) {
-            printf("Type error on symbol '%s': cannot assign to variable of a different type.\n", d->symbol->name);
+            error_print("Type error: cannot assign expression (%E), which is of type (%T) to variable '%s', which is of type (%T).\n", d->value, t, d->name, d->symbol->type);
         }
     }
 
@@ -67,6 +106,8 @@ void decl_typecheck(struct decl* d) {
 }
 
 void stmt_typecheck(struct stmt* s) {
+    if (!s) return;
+
     struct type* t;
     switch (s->kind) {
         case STMT_DECL:
@@ -79,7 +120,7 @@ void stmt_typecheck(struct stmt* s) {
         case STMT_IF_ELSE:
             t = expr_typecheck(s->expr);
             if (t->kind != TYPE_BOOLEAN) {
-                printf("Type error: if statement expression must be a boolean.\n");
+                error_print("Type error: if statement condition must be a boolean.\n\tGot expression (%E), which is of type (%T).\n", s->expr, t);
             }
 
             type_delete(t);
@@ -89,7 +130,7 @@ void stmt_typecheck(struct stmt* s) {
         case STMT_FOR:
             t = expr_typecheck(s->expr);
             if (t->kind != TYPE_BOOLEAN) {
-                printf("Type error: if statement expression must be a boolean.\n");
+                error_print("Type error: for loop condition must be a boolean.\n\tGot expression (%E), which is of type (%T)\n", s->expr, t);
             }
 
             type_delete(t);
@@ -105,6 +146,8 @@ void stmt_typecheck(struct stmt* s) {
             stmt_typecheck(s->body);
             break;
     }
+
+    stmt_typecheck(s->next);
 }
 
 struct type* expr_typecheck(struct expr* e) {
@@ -123,45 +166,48 @@ struct type* expr_typecheck(struct expr* e) {
         case EXPR_EXPONENT:
         case EXPR_MODULO:
             if (lt->kind != TYPE_INTEGER || rt->kind != TYPE_INTEGER) {
-                printf("Type error: arithmetic operations require integers.\n");
+                error_print("Type error: arithmetic operations require integers. \n\tGot the expression (%E), which is of type (%T) + (%T)\n", e, lt, rt);
             }
             result = type_create(TYPE_INTEGER);
             break;
         case EXPR_NAME:
+            // e->symbol is NULL if e is being used before it is declared
             if (e->symbol == NULL) {
-                printf("e->symbol is NULL for expression with name: '%s'\n", e->name);
+                // return arbitrary type so we can continue with checking for other type errors
+                result = type_create(TYPE_INTEGER);
+            } else {
+                result = type_copy(e->symbol->type);
             }
-            assert(e->symbol != NULL);
-            result = type_copy(e->symbol->type);
             break;
         case EXPR_NEGATE:
             if (lt->kind != TYPE_INTEGER) {
-                printf("Type error: cannot negate a non-integer.\n");
+                error_print("Type error: negate operator requries an integer, got %T.\n", lt);
             }
             result = type_create(TYPE_INTEGER);
             break;
         case EXPR_LOGICAL_OR:
         case EXPR_LOGICAL_AND:
             if (lt->kind != TYPE_BOOLEAN || rt->kind != TYPE_BOOLEAN) {
-                printf("Type error: cannot perform logical operation on non-boolean.\n");
+                error_print("Type error: logical operators require boolean arguments.\n\tGot the expression (%E), which is of type (%T) %s (%T)\n", e, lt, e->kind == EXPR_LOGICAL_OR ? "||" : "&&", rt);
             }
             result = type_create(TYPE_BOOLEAN);
             break;
         case EXPR_LOGICAL_NOT:
             if (lt->kind != TYPE_BOOLEAN) {
-                printf("Type error: cannot logically negate a non-boolean.\n");
+                error_print("Type error: logical negation requires a boolean.\n\tGot the expression (%E) which is of type (%T)\n", e, lt);
             }
             result = type_create(TYPE_BOOLEAN);
             break;
         case EXPR_CMP_EQUAL:
         case EXPR_CMP_NOT_EQUAL:
             if (!type_equals(lt, rt)) {
-                printf("Type error: comparison operators may only be used on two values of the same type.\n");
+                error_print("Type error: comparison operators may only be used on two values of the same type.\n\tGot the expression (%E), which is of the type (%T) %s (%T).\n", e, lt, e->kind == EXPR_CMP_EQUAL ? "==" : "!=", rt);
             }
+
             if (lt->kind == TYPE_VOID ||
                 lt->kind == TYPE_ARRAY ||
                 lt->kind == TYPE_FUNCTION) {
-                printf("Type error: cannot compare values of non-atomic types.\n");
+                error_print("Type error: cannot compare values of non-atomic types. \n\tGot the expression (%E), which is of type (%T)\n", e, lt);
             }
             result = type_create(TYPE_BOOLEAN);
             break;

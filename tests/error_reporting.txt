@@ -1,0 +1,57 @@
+fn1: function integer() = { return 1; }
+fn2: function integer() = { return 2; }
+test: function void () = {
+    // should get 'variable redeclared'
+    hello: string;
+    hello: string;
+
+    // should get 'variable used before being declared'
+    _test: integer = undeclared + 1;
+
+    // should get 'arithmetic operators only take integers'
+    "hello" + true;
+
+    // should get 'can only negate integers'
+    -'c';
+
+    // should get 'array subscript must be an integer'
+    arr: array [] char;
+    arr[false];
+
+    // should get 'cannot subscript this type'
+    _test[10];
+
+    // should get 'cannot assign to a variable of a different type'
+    hello: string = 'c';
+
+    // should get 'cannot increment a non-integer'
+    arr++;
+
+    // should get 'cannot decrement a non-integer'
+    hello--;
+
+    // should get 'if statement expression must be a boolean'
+    if ("testing") {
+        print "Bad";
+    }
+
+    // should get 'for loop condition must be a boolean'
+    for (;100;) {
+        print "Also bad";
+    }
+
+    // should get 'logical operators only work on booleans'
+    arr || false;
+    true && 10;
+
+    // should get 'logical negate requires a boolean'
+    !arr;
+
+    // should get 'comparison operator requires that types are the same'
+    true == 1;
+    'c' != "c";
+
+    // should get 'cannot compare values of non-atomic types'
+    arr == arr;
+    fn1 != fn2;
+}
