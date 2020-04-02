@@ -28,6 +28,20 @@ struct stmt* stmt_create(
     return s;
 }
 
+void stmt_delete(struct stmt* s) {
+    if (!s) return;
+
+    decl_delete(s->decl);
+    expr_delete(s->init_expr);
+    expr_delete(s->expr);
+    expr_delete(s->next_expr);
+    stmt_delete(s->body);
+    stmt_delete(s->else_body);
+    stmt_delete(s->next);
+
+    free(s);
+}
+
 struct stmt* stmt_create_if_else(
     struct expr* expr, struct stmt* body, struct stmt* else_body
 ) {

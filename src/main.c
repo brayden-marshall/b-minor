@@ -28,26 +28,31 @@ int main(int argc, char** argv) {
         return EXIT_FAILURE;
     }
 
-    yyin = fopen(argv[1], "r");
+    char* filename = argv[1];
+    yyin = fopen(filename, "r");
     if (!yyin) {
-        printf("Could not open file '%s'.", argv[1]);
+        printf("Could not open file '%s'.", filename);
         return EXIT_FAILURE;
     }
 
-#if DEBUG
+#if 0
     // print out token values
     printf("token values are:\n");
     enum yytokentype t;
     while ((t = yylex())) {
         printf("%d\n", t);
     }
+
+    return EXIT_SUCCESS;
 #endif
-    
+
+    // parsing
     if (yyparse() != 0) {
         printf("Parse failed!\n");
         return EXIT_FAILURE;
     }
 
+    // re-outputting
     printf("Parse successful!\n");
     printf("Result is:\n");
     if (parser_result) {
@@ -56,12 +61,14 @@ int main(int argc, char** argv) {
         printf("null\n");
     }
 
+    // resolving symbols
     scope_stack[0] = hash_table_create(0, 0);
     decl_resolve(parser_result);
 
+    // typechecking
     decl_typecheck(parser_result);
 
+    decl_delete(parser_result);
     fclose(yyin);
-
     return EXIT_SUCCESS;
 }

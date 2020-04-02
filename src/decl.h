@@ -18,6 +18,8 @@ struct decl* decl_create(
     struct decl* next
 );
 
+void decl_delete(struct decl* d);
+
 void decl_print(struct decl* d);
 
 #endif

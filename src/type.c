@@ -14,6 +14,14 @@ struct type* type_create(type_t kind) {
     return t;
 }
 
+void type_delete(struct type* t) {
+    if (!t) return;
+
+    type_delete(t->subtype);
+    param_list_delete(t->params);
+    free(t);
+}
+
 struct type* type_create_array(struct type* subtype, struct expr* size_expr) {
     struct type* t = type_create(TYPE_ARRAY);
     t->subtype = subtype;

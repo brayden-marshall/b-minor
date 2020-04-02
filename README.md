@@ -10,7 +10,9 @@
         }
     ```
 
-- custom varargs print function for error printing
+- switch to CMake instead of the crusty Makefile we currently have
+
+- Create a routine to output the AST into Graphiz DOT notation (or some other visual representation)
 
 - proper typechecking when assigning to an empty initializer list
 

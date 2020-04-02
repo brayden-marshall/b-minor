@@ -15,6 +15,16 @@ struct expr* expr_create(expr_t kind, struct expr* left, struct expr* right) {
     return e;
 }
 
+void expr_delete(struct expr* e) {
+    if (!e) return;
+
+    expr_delete(e->left);
+    expr_delete(e->right);
+    free((void*)e->string_literal);
+
+    free(e);
+}
+
 struct expr* expr_create_name(const char* name) {
     struct expr* e = expr_create(EXPR_NAME, 0, 0);
     e->name = name;

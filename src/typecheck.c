@@ -78,14 +78,6 @@ struct type* type_copy(struct type* t) {
     return new_t;
 }
 
-void type_delete(struct type* t) {
-    if (!t) return;
-
-    type_delete(t->subtype);
-    param_list_delete(t->params);
-    free(t);
-}
-
 void decl_typecheck(struct decl* d) {
     if (!d) return;
 
@@ -271,6 +263,9 @@ struct type* expr_typecheck(struct expr* e) {
             }
             result = type_create(TYPE_INTEGER);
             break;
+        default:
+            printf("Compiler bug: enum case not handled.\n");
+            assert(0);
     }
 
     type_delete(lt);

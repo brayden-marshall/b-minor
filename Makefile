@@ -2,10 +2,10 @@
 
 bin/b-minor: obj/decl.o obj/expr.o obj/parser.o obj/scanner.o obj/stmt.o obj/type.o \
           obj/param_list.o obj/main.o obj/scope.o obj/symbol.o obj/hash_table.o \
-	  obj/typecheck.o
+	  obj/typecheck.o obj/dag.o
 	gcc obj/decl.o obj/expr.o obj/parser.o obj/scanner.o obj/stmt.o obj/type.o \
 	    obj/param_list.o obj/main.o obj/scope.o obj/symbol.o obj/hash_table.o \
-	    obj/typecheck.o -o bin/b-minor -lm
+	    obj/typecheck.o obj/dag.o -o bin/b-minor -lm
 
 # This pattern indicates that any .o file depends
 # upon the .c file of the same name, and all of the .h files.

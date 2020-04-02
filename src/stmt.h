@@ -35,6 +35,8 @@ struct stmt* stmt_create(
     struct stmt* next
 );
 
+void stmt_delete(struct stmt* s);
+
 struct stmt* stmt_create_if_else(
     struct expr* expr, struct stmt* body, struct stmt* else_body
 );

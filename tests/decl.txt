@@ -3,9 +3,9 @@ testinng_123: string;
 TEST_VARIABLE: integer;
 Troo_falszz: boolean;
 
-hello: integer = 1221939;
-testinng_123: string = "hello there my good sirentountoehuneounoeduonthdurc";
-TEST_VARIABLE: integer = 179999;
+hello_: integer = 1221939;
+testinng_123_: string = "hello there my good sirentountoehuneounoeduonthdurc";
+TEST_VARIABLE_: integer = 179999;
 char_variable: char = 'h';
 troo_falszz: boolean = true;
 falzz_troo: boolean = false;

@@ -20,6 +20,8 @@ struct type {
 
 struct type* type_create(type_t kind);
 
+void type_delete(struct type* t);
+
 struct type* type_create_array(struct type* subtype, struct expr* size_expr);
 
 struct type* type_create_function(struct type* return_type, struct param_list* params);

@@ -58,6 +58,8 @@ struct expr {
 
 struct expr* expr_create(expr_t kind, struct expr* left, struct expr* right);
 
+void expr_delete(struct expr* e);
+
 struct expr* expr_create_name(const char* name);
 
 struct expr* expr_create_integer_literal(int i);

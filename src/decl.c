@@ -23,6 +23,18 @@ struct decl* decl_create(
     return d;
 }
 
+void decl_delete(struct decl* d) {
+    if (!d) return;
+
+    free((void*)d->name);
+    type_delete(d->type);
+    expr_delete(d->value);
+    stmt_delete(d->code);
+    decl_delete(d->next);
+
+    free(d);
+}
+
 void decl_print(struct decl* d) {
     if (!d) return;
 
