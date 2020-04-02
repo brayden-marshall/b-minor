@@ -72,7 +72,6 @@ struct type* type_copy(struct type* t) {
     if (!t) return NULL;
 
     struct type* new_t = type_create(t->kind);
-
     new_t->subtype = type_copy(t->subtype);
 
     return new_t;
@@ -87,6 +86,7 @@ void decl_typecheck(struct decl* d) {
         if (!type_equals(t, d->symbol->type)) {
             error_print("Type error: cannot assign to a variable of a different type.\n\tGot declaration (%s: %T = %E), which is of type (%T) = (%T).\n", d->name, d->symbol->type, d->value, d->symbol->type, t);
         }
+        type_delete(t);
     }
 
     if (d->code) {
@@ -129,10 +129,11 @@ void stmt_typecheck(struct stmt* s) {
             stmt_typecheck(s->body);
             break;
         case STMT_PRINT:
-            expr_typecheck(s->expr);
+            type_delete(expr_typecheck(s->expr));
+
             break;
         case STMT_RETURN:
-            expr_typecheck(s->expr);
+            type_delete(expr_typecheck(s->expr));
             break;
         case STMT_BLOCK:
             stmt_typecheck(s->body);

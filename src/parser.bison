@@ -213,7 +213,7 @@ args : expr
      ;
 
 for_expr : maybe_expr TOKEN_SEMI maybe_expr TOKEN_SEMI maybe_expr
-           { $$ = stmt_create_for($1, $3, $5, 0); }
+           { $$ = stmt_create_for($1, $3 == NULL ? expr_create_boolean_literal(1) : $3, $5, 0); }
          ;
 
 maybe_expr : expr

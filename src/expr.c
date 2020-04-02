@@ -4,7 +4,7 @@
 #include "expr.h"
 
 struct expr* expr_create(expr_t kind, struct expr* left, struct expr* right) {
-    struct expr* e = malloc(sizeof(*e));
+    struct expr* e = malloc(sizeof(struct expr));
     e->kind = kind;
     e->left = left;
     e->right = right;
