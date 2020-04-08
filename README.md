@@ -1,14 +1,6 @@
 ## TODO
 
-- actually call free() once in a while, if you're feeling up to it
-
 - for some expressions we are only allowing raw identifiers (such as increment and decrement). should we allow more complex expressions yet?
-
-- properly handled omitted condition for for loops, i.e. :
-    ```
-        for (;;) {
-        }
-    ```
 
 - switch to CMake instead of the crusty Makefile we currently have
 
