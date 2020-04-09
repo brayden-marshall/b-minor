@@ -5,8 +5,8 @@
 #include "expr.h"
 #include "param_list.h"
 
-struct type* type_create(type_t kind) {
-    struct type* t = malloc(sizeof(*t));
+Type* type_create(Type_t kind) {
+    Type* t = malloc(sizeof(*t));
     t->kind = kind;
     t->subtype = 0;
     t->params = 0;
@@ -14,7 +14,7 @@ struct type* type_create(type_t kind) {
     return t;
 }
 
-void type_delete(struct type* t) {
+void type_delete(Type* t) {
     if (!t) return;
 
     type_delete(t->subtype);
@@ -22,21 +22,21 @@ void type_delete(struct type* t) {
     free(t);
 }
 
-struct type* type_create_array(struct type* subtype, struct expr* size_expr) {
-    struct type* t = type_create(TYPE_ARRAY);
+Type* type_create_array(Type* subtype, Expr* size_expr) {
+    Type* t = type_create(TYPE_ARRAY);
     t->subtype = subtype;
     t->size_expr = size_expr;
     return t;
 }
 
-struct type* type_create_function(struct type* return_type, struct param_list* params) {
-    struct type* t = type_create(TYPE_FUNCTION);
+Type* type_create_function(Type* return_type, ParamList* params) {
+    Type* t = type_create(TYPE_FUNCTION);
     t->subtype = return_type;
     t->params = params;
     return t;
 }
 
-void type_print(struct type* t) {
+void type_print(Type* t) {
     if (!t) return;
 
     switch (t->kind) {

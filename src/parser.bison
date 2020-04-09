@@ -81,18 +81,18 @@ extern int yyerror(char *str);
 
 FILE* yyin;
 
-struct decl* parser_result;
+Decl* parser_result;
 
-struct decl* decl_list_last = NULL;
+Decl* decl_list_last = NULL;
 
 %}
 
 %union {
-    struct decl* decl;
-    struct stmt* stmt;
-    struct expr* expr;
-    struct type* type;
-    struct param_list* param_list;
+    struct Decl* decl;
+    struct Stmt* stmt;
+    struct Expr* expr;
+    struct Type* type;
+    struct ParamList* param_list;
     char* ident;
 }
 

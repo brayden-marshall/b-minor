@@ -1,6 +1,9 @@
 #ifndef TYPE_H
 #define TYPE_H
 
+#include "expr.h"
+#include "param_list.h"
+
 typedef enum {
     TYPE_VOID = 0,
     TYPE_BOOLEAN,
@@ -9,23 +12,25 @@ typedef enum {
     TYPE_STRING,
     TYPE_ARRAY,
     TYPE_FUNCTION,
-} type_t;
+} Type_t;
 
-struct type {
-    type_t kind;
-    struct type* subtype;
-    struct param_list* params;
-    struct expr* size_expr;
+typedef struct Type Type;
+
+struct Type {
+    Type_t kind;
+    Type* subtype;
+    ParamList* params;
+    Expr* size_expr;
 };
 
-struct type* type_create(type_t kind);
+Type* type_create(Type_t kind);
 
-void type_delete(struct type* t);
+void type_delete(Type* t);
 
-struct type* type_create_array(struct type* subtype, struct expr* size_expr);
+Type* type_create_array(Type* subtype, Expr* size_expr);
 
-struct type* type_create_function(struct type* return_type, struct param_list* params);
+Type* type_create_function(Type* return_type, ParamList* params);
 
-void type_print(struct type* t);
+void type_print(Type* t);
     
 #endif

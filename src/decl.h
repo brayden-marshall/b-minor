@@ -1,25 +1,29 @@
 #ifndef DECL_H
 #define DECL_H
 
-struct decl {
-    char* name;
-    struct type* type;
-    struct expr* value;
-    struct stmt* code;
-    struct decl* next;
-    struct symbol* symbol;
-};
+#include "type.h"
+#include "expr.h"
+#include "stmt.h"
 
-struct decl* decl_create(
+typedef struct Decl {
+    char* name;
+    Type* type;
+    Expr* value;
+    Stmt* code;
+    Decl* next;
+    Symbol* symbol;
+} Decl;
+
+Decl* decl_create(
     char* name,
-    struct type* type,
-    struct expr* value,
-    struct stmt* code,
-    struct decl* next
+    Type* type,
+    Expr* value,
+    Stmt* code,
+    Decl* next
 );
 
-void decl_delete(struct decl* d);
+void decl_delete(Decl* d);
 
-void decl_print(struct decl* d);
+void decl_print(Decl* d);
 
 #endif

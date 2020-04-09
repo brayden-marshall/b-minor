@@ -5,6 +5,7 @@
 #include "typecheck.h"
 #include "param_list.h"
 #include "type.h"
+#include "expr.h"
 #include "decl.h"
 #include "stmt.h"
 
@@ -19,10 +20,10 @@ void error_print(const char* fmt, ...) {
             fmt++;
             switch (*fmt) {
                 case 'T':
-                    type_print(va_arg(args, struct type*));
+                    type_print(va_arg(args, Type*));
                     break;
                 case 'E':
-                    expr_print(va_arg(args, struct expr*));
+                    expr_print(va_arg(args, Expr*));
                     break;
                 case 's':
                     printf("%s", va_arg(args, char*));
@@ -45,7 +46,7 @@ void error_print(const char* fmt, ...) {
     va_end(args);
 }
 
-int type_equals(struct type* a, struct type* b) {
+int type_equals(Type* a, Type* b) {
     if (!a || !b || a->kind != b->kind) {
         return 0;
     }
@@ -68,20 +69,20 @@ int type_equals(struct type* a, struct type* b) {
     }
 }
 
-struct type* type_copy(struct type* t) {
+Type* type_copy(Type* t) {
     if (!t) return NULL;
 
-    struct type* new_t = type_create(t->kind);
+    Type* new_t = type_create(t->kind);
     new_t->subtype = type_copy(t->subtype);
 
     return new_t;
 }
 
-void decl_typecheck(struct decl* d) {
+void decl_typecheck(Decl* d) {
     if (!d) return;
 
     if (d->value) {
-        struct type* t;
+        Type* t;
         t = expr_typecheck(d->value);
         if (!type_equals(t, d->symbol->type)) {
             error_print("Type error: cannot assign to a variable of a different type.\n\tGot declaration (%s: %T = %E), which is of type (%T) = (%T).\n", d->name, d->symbol->type, d->value, d->symbol->type, t);
@@ -96,10 +97,10 @@ void decl_typecheck(struct decl* d) {
     decl_typecheck(d->next);
 }
 
-void stmt_typecheck(struct stmt* s) {
+void stmt_typecheck(Stmt* s) {
     if (!s) return;
 
-    struct type* t;
+    Type* t;
     switch (s->kind) {
         case STMT_DECL:
             decl_typecheck(s->decl);
@@ -143,13 +144,13 @@ void stmt_typecheck(struct stmt* s) {
     stmt_typecheck(s->next);
 }
 
-struct type* expr_typecheck(struct expr* e) {
+Type* expr_typecheck(Expr* e) {
     if (!e) return 0;
 
-    struct type* lt = expr_typecheck(e->left);
-    struct type* rt = expr_typecheck(e->right);
+    Type* lt = expr_typecheck(e->left);
+    Type* rt = expr_typecheck(e->right);
 
-    struct type* result = NULL;
+    Type* result = NULL;
 
     switch (e->kind) {
         case EXPR_ADD:

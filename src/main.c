@@ -17,7 +17,7 @@
 #define DEBUG 0
 
 extern int yyparse();
-extern struct decl* parser_result;
+extern Decl* parser_result;
 
 extern int yylex();
 extern FILE* yyin;
@@ -73,7 +73,7 @@ int main(int argc, char** argv) {
     decl_delete(parser_result);
 
     // convert to intermediate representation
-    struct dag_node* dag = decl_to_dag(parser_result);
+    DagNode* dag = decl_to_dag(parser_result);
 
     fclose(yyin);
     return EXIT_SUCCESS;

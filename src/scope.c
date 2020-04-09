@@ -39,13 +39,13 @@ int scope_level() {
     return scope_stack_top+1;
 }
 
-void scope_bind(const char* name, struct symbol* sym) {
+void scope_bind(const char* name, Symbol* sym) {
     hash_table_insert(scope_stack[scope_stack_top], name, sym);
 }
 
-struct symbol* scope_lookup(const char* name) {
+Symbol* scope_lookup(const char* name) {
     int current_level = scope_stack_top;
-    struct symbol* s = NULL;
+    Symbol* s = NULL;
     while (s == NULL && current_level >= 0) {
         s = hash_table_lookup(scope_stack[current_level], name);
         current_level--;
@@ -54,14 +54,14 @@ struct symbol* scope_lookup(const char* name) {
     return s;
 }
 
-struct symbol* scope_lookup_current(const char* name) {
+Symbol* scope_lookup_current(const char* name) {
     return hash_table_lookup(scope_stack[scope_stack_top], name);
 }
 
-void decl_resolve(struct decl* d) {
+void decl_resolve(Decl* d) {
     if (!d) return;
 
-    symbol_t kind = scope_level() > 1 ? SYMBOL_LOCAL : SYMBOL_GLOBAL;
+    Symbol_t kind = scope_level() > 1 ? SYMBOL_LOCAL : SYMBOL_GLOBAL;
 
     if (scope_lookup_current(d->name) != NULL) {
         printf("Error: Variable '%s' was redeclared.\n", d->name);
@@ -81,7 +81,7 @@ void decl_resolve(struct decl* d) {
     decl_resolve(d->next);
 }
 
-void expr_resolve(struct expr* e) {
+void expr_resolve(Expr* e) {
     if (!e) return;
 
     if (e->kind == EXPR_NAME) {
@@ -95,7 +95,7 @@ void expr_resolve(struct expr* e) {
     }
 }
 
-void stmt_resolve(struct stmt* s) {
+void stmt_resolve(Stmt* s) {
     if (!s) return;
 
     if (s->kind == STMT_BLOCK) {
@@ -113,10 +113,10 @@ void stmt_resolve(struct stmt* s) {
     stmt_resolve(s->next);
 }
 
-void param_list_resolve(struct param_list* p) {
+void param_list_resolve(struct ParamList* p) {
     if (!p) return;
 
-    symbol_t kind = SYMBOL_PARAM;
+    Symbol_t kind = SYMBOL_PARAM;
 
     p->symbol = symbol_create(kind, p->type, p->name);
 

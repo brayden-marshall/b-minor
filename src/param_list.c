@@ -6,10 +6,10 @@
 #include "type.h"
 #include "typecheck.h"
 
-struct param_list* param_list_create(
-    char* name, struct type* type, struct param_list* next
+ParamList* param_list_create(
+    char* name, Type* type, ParamList* next
 ) {
-    struct param_list* p = malloc(sizeof(*p));
+    ParamList* p = malloc(sizeof(*p));
     p->name = name;
     p->type = type;
     p->next = next;
@@ -17,7 +17,7 @@ struct param_list* param_list_create(
     return p;
 }
 
-void param_list_delete(struct param_list* p) {
+void param_list_delete(ParamList* p) {
     if (!p) return;
 
     type_delete(p->type);
@@ -26,7 +26,7 @@ void param_list_delete(struct param_list* p) {
     free(p);
 }
 
-void param_list_print(struct param_list* p) {
+void param_list_print(ParamList* p) {
     if (!p) return;
 
     printf("%s: ", p->name);
@@ -38,7 +38,7 @@ void param_list_print(struct param_list* p) {
     }
 }
 
-int param_list_equals(struct param_list* a, struct param_list* b) {
+int param_list_equals(ParamList* a, ParamList* b) {
     if (a == b) return 1;
     if (!a || !b) return 0;
 
@@ -53,10 +53,10 @@ int param_list_equals(struct param_list* a, struct param_list* b) {
     return param_list_equals(a->next, b->next);
 }
 
-struct param_list* param_list_copy(struct param_list* p) {
+ParamList* param_list_copy(ParamList* p) {
     if (!p) return 0;
 
-    struct param_list* new_p = param_list_create(0, 0, 0);
+    ParamList* new_p = param_list_create(0, 0, 0);
     new_p->name = strdup(p->name);
     new_p->type = type_copy(p->type);
     new_p->next = param_list_copy(p->next);

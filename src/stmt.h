@@ -1,6 +1,10 @@
 #ifndef STMT_H
 #define STMT_H
 
+typedef struct Decl Decl;
+typedef struct Symbol Symbol;
+typedef struct Expr Expr;
+
 typedef enum {
     STMT_DECL = 0,
     STMT_EXPR,
@@ -9,53 +13,55 @@ typedef enum {
     STMT_PRINT,
     STMT_RETURN,
     STMT_BLOCK,
-} stmt_t;
+} Stmt_t;
 
-struct stmt {
-    stmt_t kind;
-    struct decl* decl;
-    struct expr* init_expr;
-    struct expr* expr;
-    struct expr* next_expr;
-    struct stmt* body;
-    struct stmt* else_body;
-    struct stmt* next;
+typedef struct Stmt Stmt;
 
-    struct symbol* symbol;
+struct Stmt {
+    Stmt_t kind;
+    Decl* decl;
+    Expr* init_expr;
+    Expr* expr;
+    Expr* next_expr;
+    Stmt* body;
+    Stmt* else_body;
+    Stmt* next;
+
+    Symbol* symbol;
 };
 
-struct stmt* stmt_create(
-    stmt_t kind,
-    struct decl* decl,
-    struct expr* init_expr,
-    struct expr* expr,
-    struct expr* next_expr,
-    struct stmt* body,
-    struct stmt* else_body,
-    struct stmt* next
+Stmt* stmt_create(
+    Stmt_t kind,
+    Decl* decl,
+    Expr* init_expr,
+    Expr* expr,
+    Expr* next_expr,
+    Stmt* body,
+    Stmt* else_body,
+    Stmt* next
 );
 
-void stmt_delete(struct stmt* s);
+void stmt_delete(Stmt* s);
 
-struct stmt* stmt_create_if_else(
-    struct expr* expr, struct stmt* body, struct stmt* else_body
+Stmt* stmt_create_if_else(
+    Expr* expr, Stmt* body, Stmt* else_body
 );
 
-struct stmt* stmt_create_for(
-    struct expr* init_expr, struct expr* expr,
-    struct expr* next_expr, struct stmt* body
+Stmt* stmt_create_for(
+    Expr* init_expr, Expr* expr,
+    Expr* next_expr, Stmt* body
 );
 
-struct stmt* stmt_create_block(struct stmt* body);
+Stmt* stmt_create_block(Stmt* body);
 
-struct stmt* stmt_create_return(struct expr* expr);
+Stmt* stmt_create_return(Expr* expr);
 
-struct stmt* stmt_create_print(struct expr* expr);
+Stmt* stmt_create_print(Expr* expr);
 
-struct stmt* stmt_create_decl(struct decl* decl);
+Stmt* stmt_create_decl(Decl* decl);
 
-struct stmt* stmt_create_expr(struct expr* expr);
+Stmt* stmt_create_expr(Expr* expr);
 
-void stmt_print(struct stmt* s);
+void stmt_print(Stmt* s);
 
 #endif

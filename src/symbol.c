@@ -3,15 +3,15 @@
 #include "symbol.h"
 #include "type.h"
 
-struct symbol* symbol_create(symbol_t kind, struct type* type, char* name) {
-    struct symbol* s = malloc(sizeof(*s));
+Symbol* symbol_create(Symbol_t kind, Type* type, char* name) {
+    Symbol* s = malloc(sizeof(*s));
     s->kind = kind;
     s->type = type;
     s->name = name;
     return s;
 }
 
-void symbol_delete(struct symbol* s) {
+void symbol_delete(Symbol* s) {
     if (!s) return;
 
     type_delete(s->type);

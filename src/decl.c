@@ -6,14 +6,14 @@
 #include "type.h"
 #include "stmt.h"
 
-struct decl* decl_create(
+Decl* decl_create(
     char* name,
-    struct type* type,
-    struct expr* value,
-    struct stmt* code,
-    struct decl* next
+    Type* type,
+    Expr* value,
+    Stmt* code,
+    Decl* next
 ) {
-    struct decl* d = malloc(sizeof(*d));
+    Decl* d = malloc(sizeof(*d));
     d->name = name;
     d->type = type;
     d->value = value;
@@ -23,7 +23,7 @@ struct decl* decl_create(
     return d;
 }
 
-void decl_delete(struct decl* d) {
+void decl_delete(Decl* d) {
     if (!d) return;
 
     free((void*)d->name);
@@ -35,7 +35,7 @@ void decl_delete(struct decl* d) {
     free(d);
 }
 
-void decl_print(struct decl* d) {
+void decl_print(Decl* d) {
     if (!d) return;
 
     printf("%s: ", d->name);

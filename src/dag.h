@@ -13,12 +13,14 @@ typedef enum {
     DAG_NAME,
     DAG_FLOAT_VALUE,
     DAG_INTEGER_VALUE,
-} dag_kind_t;
+} DagNode_t;
 
-struct dag_node {
-    dag_kind_t kind;
-    struct dag_node* left;
-    struct dag_node* right;
+typedef struct DagNode DagNode;
+
+struct DagNode {
+    DagNode_t kind;
+    DagNode* left;
+    DagNode* right;
     union {
         const char* name;
         double float_value;
@@ -26,24 +28,24 @@ struct dag_node {
     };
 };
 
-struct dag_node* dag_node_create(
-    dag_kind_t kind,
-    struct dag_node* left,
-    struct dag_node* right
+DagNode* dag_node_create(
+    DagNode_t kind,
+    DagNode* left,
+    DagNode* right
 );
 
-void dag_node_delete(struct dag_node* d);
+void dag_node_delete(DagNode* d);
 
-struct dag_node* dag_node_create_name(const char* name);
+DagNode* dag_node_create_name(const char* name);
 
-struct dag_node* dag_node_create_float(double float_value);
+DagNode* dag_node_create_float(double float_value);
 
-struct dag_node* dag_node_create_integer(int integer_value);
+DagNode* dag_node_create_integer(int integer_value);
 
-struct dag_node* decl_to_dag(struct decl* d);
+DagNode* decl_to_dag(Decl* d);
 
-struct dag_node* stmt_to_dag(struct stmt* s);
+DagNode* stmt_to_dag(Stmt* s);
 
-struct dag_node* expr_to_dag(struct expr* e);
+DagNode* expr_to_dag(Expr* e);
 
 #endif

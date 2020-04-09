@@ -3,8 +3,8 @@
 
 #include "expr.h"
 
-struct expr* expr_create(expr_t kind, struct expr* left, struct expr* right) {
-    struct expr* e = malloc(sizeof(struct expr));
+Expr* expr_create(Expr_t kind, Expr* left, Expr* right) {
+    Expr* e = malloc(sizeof(Expr));
     e->kind = kind;
     e->left = left;
     e->right = right;
@@ -15,7 +15,7 @@ struct expr* expr_create(expr_t kind, struct expr* left, struct expr* right) {
     return e;
 }
 
-void expr_delete(struct expr* e) {
+void expr_delete(Expr* e) {
     if (!e) return;
 
     expr_delete(e->left);
@@ -25,61 +25,61 @@ void expr_delete(struct expr* e) {
     free(e);
 }
 
-struct expr* expr_create_name(const char* name) {
-    struct expr* e = expr_create(EXPR_NAME, 0, 0);
+Expr* expr_create_name(const char* name) {
+    Expr* e = expr_create(EXPR_NAME, 0, 0);
     e->name = name;
     return e;
 }
 
-struct expr* expr_create_integer_literal(int i) {
-    struct expr* e = expr_create(EXPR_INTEGER_LITERAL, 0, 0);
+Expr* expr_create_integer_literal(int i) {
+    Expr* e = expr_create(EXPR_INTEGER_LITERAL, 0, 0);
     e->integer_value = i;
     return e;
 }
 
-struct expr* expr_create_boolean_literal(int b) {
-    struct expr* e = expr_create(EXPR_BOOLEAN_LITERAL, 0, 0);
+Expr* expr_create_boolean_literal(int b) {
+    Expr* e = expr_create(EXPR_BOOLEAN_LITERAL, 0, 0);
     e->integer_value = b;
     return e;
 }
 
-struct expr* expr_create_char_literal(char c) {
-    struct expr* e = expr_create(EXPR_CHAR_LITERAL, 0, 0);
+Expr* expr_create_char_literal(char c) {
+    Expr* e = expr_create(EXPR_CHAR_LITERAL, 0, 0);
     e->integer_value = c;
     return e;
 }
 
-struct expr* expr_create_string_literal(const char* str) {
-    struct expr* e = expr_create(EXPR_STRING_LITERAL, 0, 0);
+Expr* expr_create_string_literal(const char* str) {
+    Expr* e = expr_create(EXPR_STRING_LITERAL, 0, 0);
     e->string_literal = str;
     return e;
 }
 
-struct expr* expr_create_arg(struct expr* expr, struct expr* next) {
+Expr* expr_create_arg(Expr* expr, Expr* next) {
     return expr_create(EXPR_ARG, expr, next);
 }
 
-struct expr* expr_create_init_list(struct expr* args) {
+Expr* expr_create_init_list(Expr* args) {
     return expr_create(EXPR_INIT_LIST, 0, args);
 }
 
-struct expr* expr_create_call(const char* name, struct expr* args) {
+Expr* expr_create_call(const char* name, Expr* args) {
     return expr_create(EXPR_CALL, expr_create_name(name), args);
 }
 
-struct expr* expr_create_subscript(const char* array_name, struct expr* at) {
+Expr* expr_create_subscript(const char* array_name, Expr* at) {
     return expr_create(EXPR_SUBSCRIPT, expr_create_name(array_name), at);
 }
 
-struct expr* expr_create_increment(const char* name) {
+Expr* expr_create_increment(const char* name) {
     return expr_create(EXPR_INCREMENT, expr_create_name(name), 0);
 }
 
-struct expr* expr_create_decrement(const char* name) {
+Expr* expr_create_decrement(const char* name) {
     return expr_create(EXPR_DECREMENT, expr_create_name(name), 0);
 }
 
-void expr_print(struct expr* e) {
+void expr_print(Expr* e) {
     if (!e) return;
 
     if (e->kind != EXPR_LOGICAL_NOT && e->kind != EXPR_NEGATE) {

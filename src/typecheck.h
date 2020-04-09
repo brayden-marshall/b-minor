@@ -6,16 +6,16 @@
 #include "decl.h"
 #include "stmt.h"
 
-int type_equals(struct type* a, struct type* b);
+int type_equals(Type* a, Type* b);
 
-struct type* type_copy(struct type* t);
+Type* type_copy(Type* t);
 
-void type_delete(struct type* t);
+void type_delete(Type* t);
 
-struct type* expr_typecheck(struct expr* e);
+Type* expr_typecheck(Expr* e);
 
-void decl_typecheck(struct decl* d);
+void decl_typecheck(Decl* d);
 
-void stmt_typecheck(struct stmt* s);
+void stmt_typecheck(Stmt* s);
 
 #endif

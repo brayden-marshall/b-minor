@@ -15,18 +15,18 @@ void scope_exit();
 
 int scope_level();
 
-void scope_bind(const char* name, struct symbol* sym);
+void scope_bind(const char* name, Symbol* sym);
 
-struct symbol* scope_lookup(const char* name);
+Symbol* scope_lookup(const char* name);
 
-struct symbol* scope_lookup_current(const char* name);
+Symbol* scope_lookup_current(const char* name);
 
-void decl_resolve(struct decl* d);
+void decl_resolve(Decl* d);
 
-void expr_resolve(struct expr* e);
+void expr_resolve(Expr* e);
 
-void stmt_resolve(struct stmt* s);
+void stmt_resolve(Stmt* s);
 
-void param_list_resolve(struct param_list* p);
+void param_list_resolve(ParamList* p);
 
 #endif

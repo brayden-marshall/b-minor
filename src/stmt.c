@@ -5,17 +5,17 @@
 #include "decl.h"
 #include "expr.h"
 
-struct stmt* stmt_create(
-    stmt_t kind,
-    struct decl* decl,
-    struct expr* init_expr,
-    struct expr* expr,
-    struct expr* next_expr,
-    struct stmt* body,
-    struct stmt* else_body,
-    struct stmt* next
+Stmt* stmt_create(
+    Stmt_t kind,
+    Decl* decl,
+    Expr* init_expr,
+    Expr* expr,
+    Expr* next_expr,
+    Stmt* body,
+    Stmt* else_body,
+    Stmt* next
 ) {
-    struct stmt* s = malloc(sizeof(*s));
+    Stmt* s = malloc(sizeof(*s));
     s->kind = kind;
     s->decl = decl;
     s->init_expr = init_expr;
@@ -28,7 +28,7 @@ struct stmt* stmt_create(
     return s;
 }
 
-void stmt_delete(struct stmt* s) {
+void stmt_delete(Stmt* s) {
     if (!s) return;
 
     decl_delete(s->decl);
@@ -42,57 +42,59 @@ void stmt_delete(struct stmt* s) {
     free(s);
 }
 
-struct stmt* stmt_create_if_else(
-    struct expr* expr, struct stmt* body, struct stmt* else_body
+Stmt* stmt_create_if_else(
+    Expr* expr, Stmt* body, Stmt* else_body
 ) {
     return stmt_create(
         STMT_IF_ELSE, 0, 0, expr, 0, body, else_body, 0
     );
 }
 
-struct stmt* stmt_create_block(struct stmt* body) {
+Stmt* stmt_create_block(Stmt* body) {
     return stmt_create(
         STMT_BLOCK, 0, 0, 0, 0, body, 0, 0
     );
 }
 
-struct stmt* stmt_create_return(struct expr* expr) {
+Stmt* stmt_create_return(Expr* expr) {
     return stmt_create(
         STMT_RETURN, 0, 0, expr, 0, 0, 0, 0
     );
 }
 
-struct stmt* stmt_create_print(struct expr* expr) {
+Stmt* stmt_create_print(Expr* expr) {
     return stmt_create(
         STMT_PRINT, 0, 0, expr, 0, 0, 0, 0
     );
 }
 
-struct stmt* stmt_create_for(
-    struct expr* init_expr, struct expr* expr,
-    struct expr* next_expr, struct stmt* body
+Stmt* stmt_create_for(
+    Expr* init_expr, Expr* expr,
+    Expr* next_expr, Stmt* body
 ) {
     return stmt_create(
         STMT_FOR, 0, init_expr, expr, next_expr, body, 0, 0
     );
 }
 
-struct stmt* stmt_create_decl(struct decl* decl) {
+int x = 1234;
+
+Stmt* stmt_create_decl(Decl* decl) {
     return stmt_create(
         STMT_DECL, decl, 0, 0, 0, 0, 0, 0
     );
 }
 
-struct stmt* stmt_create_expr(struct expr* expr) {
+Stmt* stmt_create_expr(Expr* expr) {
     return stmt_create(
         STMT_EXPR, 0, 0, expr, 0, 0, 0, 0
     );
 }
 
 void indent_print(char* string, int level);
-void _stmt_print(struct stmt* s, int indent);
-void body_print(struct stmt *body, int indent_level, int indent_first);
-void stmt_print(struct stmt* s);
+void _stmt_print(Stmt* s, int indent);
+void body_print(Stmt *body, int indent_level, int indent_first);
+void stmt_print(Stmt* s);
 
 void indent_print(char* string, int level) {
     for (int i = 0; i < level; i++) {
@@ -103,7 +105,7 @@ void indent_print(char* string, int level) {
 }
 
 // indent_first == boolean
-void body_print(struct stmt *s, int indent_level, int indent_first) {
+void body_print(Stmt *s, int indent_level, int indent_first) {
     if (!s) return;
 
     if (s->kind == STMT_BLOCK) {
@@ -120,7 +122,7 @@ void body_print(struct stmt *s, int indent_level, int indent_first) {
     }
 }
 
-void _stmt_print(struct stmt* s, int indent) {
+void _stmt_print(Stmt* s, int indent) {
     if (!s) return;
 
     switch (s->kind) {
@@ -174,6 +176,6 @@ void _stmt_print(struct stmt* s, int indent) {
     _stmt_print(s->next, indent);
 }
 
-void stmt_print(struct stmt* s) {
+void stmt_print(Stmt* s) {
     _stmt_print(s, 0);
 }

@@ -42,46 +42,48 @@ typedef enum {
 
     EXPR_INCREMENT,
     EXPR_DECREMENT,
-} expr_t;
+} Expr_t;
 
-struct expr {
-    expr_t kind;
-    struct expr* left;
-    struct expr* right;
+typedef struct Expr Expr;
+
+struct Expr {
+    Expr_t kind;
+    Expr* left;
+    Expr* right;
 
     const char* name;
     int integer_value;
     const char* string_literal;
 
-    struct symbol* symbol;
+    Symbol* symbol;
 };
 
-struct expr* expr_create(expr_t kind, struct expr* left, struct expr* right);
+Expr* expr_create(Expr_t kind, Expr* left, Expr* right);
 
-void expr_delete(struct expr* e);
+void expr_delete(Expr* e);
 
-struct expr* expr_create_name(const char* name);
+Expr* expr_create_name(const char* name);
 
-struct expr* expr_create_integer_literal(int i);
+Expr* expr_create_integer_literal(int i);
 
-struct expr* expr_create_boolean_literal(int b);
+Expr* expr_create_boolean_literal(int b);
 
-struct expr* expr_create_char_literal(char c);
+Expr* expr_create_char_literal(char c);
 
-struct expr* expr_create_string_literal(const char* str);
+Expr* expr_create_string_literal(const char* str);
 
-struct expr* expr_create_arg(struct expr* expr, struct expr* next);
+Expr* expr_create_arg(Expr* expr, Expr* next);
 
-struct expr* expr_create_init_list(struct expr* args);
+Expr* expr_create_init_list(Expr* args);
 
-struct expr* expr_create_call(const char* name, struct expr* args);
+Expr* expr_create_call(const char* name, Expr* args);
 
-struct expr* expr_create_subscript(const char* array_name, struct expr* at);
+Expr* expr_create_subscript(const char* array_name, Expr* at);
 
-struct expr* expr_create_increment(const char* name);
+Expr* expr_create_increment(const char* name);
 
-struct expr* expr_create_decrement(const char* name);
+Expr* expr_create_decrement(const char* name);
 
-void expr_print(struct expr* e);
+void expr_print(Expr* e);
 
 #endif
