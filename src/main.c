@@ -8,7 +8,6 @@
 #include "typecheck.h"
 #include "param_list.h"
 #include "scope.h"
-#include "dag.h"
 
 #include "hash_table.h"
 
@@ -71,9 +70,6 @@ int main(int argc, char** argv) {
     decl_typecheck(parser_result);
 
     decl_delete(parser_result);
-
-    // convert to intermediate representation
-    DagNode* dag = decl_to_dag(parser_result);
 
     fclose(yyin);
     return EXIT_SUCCESS;

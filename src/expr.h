@@ -56,6 +56,7 @@ struct Expr {
     const char* string_literal;
 
     Symbol* symbol;
+    int reg;
 };
 
 Expr* expr_create(Expr_t kind, Expr* left, Expr* right);

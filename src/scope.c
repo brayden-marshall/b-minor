@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
 
 #include "type.h"
 
@@ -9,7 +10,12 @@
 
 static int scope_stack_top = 0;
 
+// stores the current number of variables declared in each scope
+// this is used to set the 'which' property on symbols for code generation
+int scope_stack_var_counts[256];
+
 void scope_enter() {
+    //printf("entering scope...\n");
     scope_stack_top++;
     if ((unsigned int)scope_stack_top >= sizeof(scope_stack)/sizeof(scope_stack[0])) {
         printf("Maximum scope level reached.\n");
@@ -23,11 +29,13 @@ void scope_enter() {
     if (!scope_stack[scope_stack_top]) {
         scope_stack[scope_stack_top] = hash_table_create(0, 0);
     }
+    scope_stack_var_counts[scope_stack_top] = 0;
 }
 
 void scope_exit() {
+    //printf("exiting scope...\n");
     if (scope_stack_top == 0) {
-        printf("Attempt to delete global scope. Exiting.\n");
+        printf("**(Compiler Bug)**: Attempt to delete global scope. Exiting.\n");
         exit(1);
     }
 
@@ -40,6 +48,11 @@ int scope_level() {
 }
 
 void scope_bind(const char* name, Symbol* sym) {
+    assert(scope_stack_top >= 0 && scope_stack_top < 256);
+
+    sym->which = scope_stack_var_counts[scope_stack_top];
+    scope_stack_var_counts[scope_stack_top]++;
+
     hash_table_insert(scope_stack[scope_stack_top], name, sym);
 }
 
@@ -74,7 +87,7 @@ void decl_resolve(Decl* d) {
     if (d->code) {
         scope_enter();
         param_list_resolve(d->type->params);
-        stmt_resolve(d->code);
+        stmt_resolve(d->code->body);
         scope_exit();
     }
 
@@ -113,12 +126,10 @@ void stmt_resolve(Stmt* s) {
     stmt_resolve(s->next);
 }
 
-void param_list_resolve(struct ParamList* p) {
+void param_list_resolve(ParamList* p) {
     if (!p) return;
 
-    Symbol_t kind = SYMBOL_PARAM;
-
-    p->symbol = symbol_create(kind, p->type, p->name);
+    p->symbol = symbol_create(SYMBOL_PARAM, p->type, p->name);
 
     scope_bind(p->name, p->symbol);
 
