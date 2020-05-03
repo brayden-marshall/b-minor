@@ -60,13 +60,13 @@ int label_create() {
 }
 
 const char* label_name(int label) {
-    char* temp = 0;
+    char* temp = malloc(sizeof(char) * 256);
     sprintf(temp, ".L%d", label);
     return temp;
 }
 
 const char* symbol_codegen(Symbol* s) {
-    char* name = NULL;
+    char* name = malloc(sizeof(char) * 256);
 
     if (s->kind == SYMBOL_GLOBAL) {
         name = s->name;
@@ -75,7 +75,7 @@ const char* symbol_codegen(Symbol* s) {
         int offset_abs = (s->which+1)*8;
         sprintf(name, "-%d(%%rbp)", offset_abs);
     }
-    printf("s->name gets symbol %s\n", name);
+    //printf("s->name gets symbol %s\n", name);
 
     return name;
 }
@@ -91,22 +91,76 @@ void expr_codegen(Expr* e) {
                 symbol_codegen(e->symbol),
                 scratch_name(e->reg));
             break;
+
+        // literals
+        case EXPR_STRING_LITERAL:
+            break;
+
+        case EXPR_CHAR_LITERAL:
+        case EXPR_INTEGER_LITERAL:
+        case EXPR_BOOLEAN_LITERAL:
+            e->reg = scratch_alloc();
+            printf("MOVQ %d, %s\n",
+                e->integer_value,
+                scratch_name(e->reg));
+            break;
         
         // Interior node: generate children, then add them.
+        
+        // arithmetic expressions
         case EXPR_ADD:
+            // ADDQ left, right
             expr_codegen(e->left);
             expr_codegen(e->right);
+
             printf("ADDQ %s, %s\n",
                 scratch_name(e->left->reg),
                 scratch_name(e->right->reg));
+
             e->reg = e->right->reg;
             scratch_free(e->left->reg);
             break;
         case EXPR_SUB:
+            // SUBQ left, right
+            expr_codegen(e->left);
+            expr_codegen(e->right);
+
+            printf("SUBQ %s, %s\n",
+                scratch_name(e->left->reg),
+                scratch_name(e->right->reg));
+
+            e->reg = e->right->reg;
+            scratch_free(e->left->reg);
             break;
         case EXPR_MUL:
+            // MOVQ left, %rax
+            // IMULQ right
+            // MOVQ %rax, right
+            expr_codegen(e->left);
+            expr_codegen(e->right);
+
+            printf("MOVQ %s, %%rax\n", scratch_name(e->left->reg));
+            printf("IMULQ %s\n",       scratch_name(e->right->reg));
+            printf("MOVQ %%rax, %s\n", scratch_name(e->right->reg));
+
+            e->reg = e->right->reg;
+            scratch_free(e->left->reg);
             break;
         case EXPR_DIV:
+            // MOVQ right, %rax
+            // CQO
+            // IDIVQ left
+            // MOVQ %rax, right
+            expr_codegen(e->left);
+            expr_codegen(e->right);
+
+            printf("MOVQ %s, %%rax\n", scratch_name(e->right->reg));
+            printf("CQO\n");
+            printf("IDIVQ %s\n", scratch_name(e->left->reg));
+            printf("MOVQ %%rax, %s\n", scratch_name(e->right->reg));
+
+            e->reg = e->right->reg;
+            scratch_free(e->left->reg);
             break;
         case EXPR_EXPONENT:
             break;
@@ -115,14 +169,7 @@ void expr_codegen(Expr* e) {
         case EXPR_NEGATE:
             break;
 
-        case EXPR_ASSIGN:
-            expr_codegen(e->left);
-            printf("MOVQ %s, %s\n",
-                    scratch_name(e->left->reg),
-                    symbol_codegen(e->right->symbol));
-            e->reg = e->left->reg;
-            break;
-
+        // logical operations
         case EXPR_LOGICAL_OR:
             break;
         case EXPR_LOGICAL_AND:
@@ -130,6 +177,7 @@ void expr_codegen(Expr* e) {
         case EXPR_LOGICAL_NOT:
             break;
 
+        // conditionals
         case EXPR_CMP_EQUAL:
             break;
         case EXPR_CMP_NOT_EQUAL:
@@ -143,15 +191,20 @@ void expr_codegen(Expr* e) {
         case EXPR_CMP_LT_EQUAL:
             break;
 
-        case EXPR_CHAR_LITERAL:
+        // assignments
+        case EXPR_ASSIGN:
+            expr_codegen(e->left);
+            printf("MOVQ %s, %s\n",
+                    scratch_name(e->left->reg),
+                    symbol_codegen(e->right->symbol));
+            e->reg = e->left->reg;
             break;
-        case EXPR_STRING_LITERAL:
+        case EXPR_INCREMENT:
             break;
-        case EXPR_INTEGER_LITERAL:
-            break;
-        case EXPR_BOOLEAN_LITERAL:
+        case EXPR_DECREMENT:
             break;
 
+        // misc.
         case EXPR_CALL:
             break;
         case EXPR_INIT_LIST:
@@ -159,11 +212,6 @@ void expr_codegen(Expr* e) {
         case EXPR_ARG:
             break;
         case EXPR_SUBSCRIPT:
-            break;
-
-        case EXPR_INCREMENT:
-            break;
-        case EXPR_DECREMENT:
             break;
     }
 }
@@ -179,19 +227,67 @@ void stmt_codegen(Stmt* s) {
             expr_codegen(s->expr);
             scratch_free(s->expr->reg);
             break;
-        case STMT_IF_ELSE:
-            break;
-        case STMT_FOR:
-            break;
+        case STMT_IF_ELSE: {
+            int else_label = label_create();
+            int done_label = label_create();
+
+            // condition expr
+            expr_codegen(s->expr);
+            printf("CMP %s, $0\n", scratch_name(s->expr->reg));
+            scratch_free(s->expr->reg);
+            printf("JE %s\n", label_name(else_label));
+
+            // if branch
+            stmt_codegen(s->body);
+            printf("JMP %s\n", label_name(done_label));
+
+            // else branch
+            printf("%s:\n", label_name(else_label));
+            stmt_codegen(s->else_body);
+            printf("%s:\n", label_name(done_label));
+        } break;
+        case STMT_FOR: {
+            int top_label = label_create();
+            int done_label = label_create();
+
+            // init expr
+            if (s->init_expr) {
+                expr_codegen(s->init_expr);
+                scratch_free(s->init_expr->reg);
+            }
+
+            printf("%s:\n", label_name(top_label));
+
+            // condition expr
+            if (s->expr) {
+                expr_codegen(s->expr);
+                printf("CMP %s, $0\n", scratch_name(s->expr->reg));
+                scratch_free(s->expr->reg);
+                printf("JE %s\n", label_name(done_label));
+            }
+
+            // body
+            stmt_codegen(s->body);
+
+            // next expr
+            if (s->next_expr) {
+                expr_codegen(s->next_expr);
+                scratch_free(s->next_expr->reg);
+            }
+            printf("JMP %s\n", label_name(top_label));
+
+            printf("%s:\n", label_name(done_label));
+        } break;
         case STMT_PRINT:
             break;
         case STMT_RETURN:
             expr_codegen(s->expr);
-            printf("MOV %s, %%rax\n", scratch_name(s->expr->reg));
-            printf("JMP .%s_epilogue\n", /*FIXME: function_name*/"");
+            printf("MOVQ %s, %%rax\n", scratch_name(s->expr->reg));
+            printf("JMP .%s_epilogue\n", "***FIXME FUNCTION NAME GOES HERE***");
             scratch_free(s->expr->reg);
             break;
         case STMT_BLOCK:
+            stmt_codegen(s->body);
             break;
     }
 
@@ -199,4 +295,10 @@ void stmt_codegen(Stmt* s) {
 }
 
 void decl_codegen(Decl* d) {
+    if (!d) return;
+
+    // FIXME: incomplete
+    stmt_codegen(d->code);
+
+    decl_codegen(d->next);
 }

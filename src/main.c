@@ -8,6 +8,7 @@
 #include "typecheck.h"
 #include "param_list.h"
 #include "scope.h"
+#include "x64_codegen.h"
 
 #include "hash_table.h"
 
@@ -69,8 +70,10 @@ int main(int argc, char** argv) {
     // typechecking
     decl_typecheck(parser_result);
 
-    decl_delete(parser_result);
+    // codegen
+    decl_codegen(parser_result);
 
+    decl_delete(parser_result);
     fclose(yyin);
     return EXIT_SUCCESS;
 }
