@@ -22,7 +22,9 @@ extern Decl* parser_result;
 extern int yylex();
 extern FILE* yyin;
 
-extern struct hash_table* scope_stack[256];
+int scope_error = 0;
+
+struct hash_table* scope_stack[SCOPE_STACK_MAX];
 
 int main(int argc, char** argv) {
     if (argc != 2) {
@@ -66,6 +68,10 @@ int main(int argc, char** argv) {
     // resolving symbols
     scope_stack[0] = hash_table_create(0, 0);
     decl_resolve(parser_result);
+    if (scope_error != 0) {
+        printf("Error(s) encountered when resolving symbols. Exiting...\n");
+        exit(1);
+    }
 
     // typechecking
     decl_typecheck(parser_result);

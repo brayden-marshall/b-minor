@@ -10,14 +10,16 @@
 
 static int scope_stack_top = 0;
 
+extern struct hash_table* scope_stack[SCOPE_STACK_MAX];
+
 // stores the current number of variables declared in each scope
 // this is used to set the 'which' property on symbols for code generation
-int scope_stack_var_counts[256];
+int scope_stack_var_counts[SCOPE_STACK_MAX];
 
 void scope_enter() {
     //printf("entering scope...\n");
     scope_stack_top++;
-    if ((unsigned int)scope_stack_top >= sizeof(scope_stack)/sizeof(scope_stack[0])) {
+    if (scope_stack_top >= SCOPE_STACK_MAX) {
         printf("Maximum scope level reached.\n");
         printf("I'm so sorry for your loss.\n");
         exit(1);
@@ -48,7 +50,7 @@ int scope_level() {
 }
 
 void scope_bind(const char* name, Symbol* sym) {
-    assert(scope_stack_top >= 0 && scope_stack_top < 256);
+    assert(scope_stack_top >= 0 && scope_stack_top < SCOPE_STACK_MAX);
 
     sym->which = scope_stack_var_counts[scope_stack_top];
     scope_stack_var_counts[scope_stack_top]++;
@@ -68,6 +70,9 @@ Symbol* scope_lookup(const char* name) {
 }
 
 Symbol* scope_lookup_current(const char* name) {
+    assert(scope_stack_top < SCOPE_STACK_MAX);
+    assert(scope_stack[scope_stack_top]);
+
     return hash_table_lookup(scope_stack[scope_stack_top], name);
 }
 
@@ -78,6 +83,7 @@ void decl_resolve(Decl* d) {
 
     if (scope_lookup_current(d->name) != NULL) {
         printf("Error: Variable '%s' was redeclared.\n", d->name);
+        scope_error = 1;
     }
     d->symbol = symbol_create(kind, d->type, d->name);
 
@@ -100,7 +106,8 @@ void expr_resolve(Expr* e) {
     if (e->kind == EXPR_NAME) {
         e->symbol = scope_lookup(e->name);
         if (e->symbol == NULL) {
-            printf("Identifier '%s' used before it was declared.\n", e->name);
+            printf("Error: Identifier '%s' used before it was declared.\n", e->name);
+            scope_error = 1;
         }
     } else {
         expr_resolve(e->left);

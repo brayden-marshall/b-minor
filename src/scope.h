@@ -7,7 +7,10 @@
 #include "param_list.h"
 #include "symbol.h"
 
-struct hash_table* scope_stack[256];
+#define SCOPE_STACK_MAX 256
+
+extern struct hash_table* scope_stack[SCOPE_STACK_MAX];
+extern int scope_error;
 
 void scope_enter();
 

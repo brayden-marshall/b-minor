@@ -26,6 +26,7 @@ struct ScratchTable scratch_table = {
 int scratch_alloc() {
     for (int r = 0; r < X64_NUM_REGISTERS; r++) {
         if (!scratch_table.in_use[r]) {
+            scratch_table.in_use[r] = 1;
             return r;
         }
     }
@@ -67,6 +68,10 @@ const char* label_name(int label) {
 
 const char* symbol_codegen(Symbol* s) {
     char* name = malloc(sizeof(char) * 256);
+    if (name == 0) {
+        printf("Error: ran out of memory.");
+        exit(1);
+    }
 
     if (s->kind == SYMBOL_GLOBAL) {
         name = s->name;
@@ -299,6 +304,7 @@ void decl_codegen(Decl* d) {
 
     // FIXME: incomplete
     stmt_codegen(d->code);
+    expr_codegen(d->value);
 
     decl_codegen(d->next);
 }

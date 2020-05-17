@@ -1,0 +1,6 @@
+func: function integer () = {
+    add: integer = 1 + 1;
+    subtract: integer = 10 - add;
+    multiply: integer = subtract * add;
+    divide: integer = multiply / multiply;
+};

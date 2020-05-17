@@ -21,8 +21,11 @@ modulo_test: integer = 100 % 10;
 
 test_fn_0: function integer () = { return 1; }
 test_fn_1: function integer (x: integer) = { return 1; }
-test_fn_4: function integer (x: integer, y: string, z: boolean, huh: char) = { return 1; }
+test_fn_4: function integer (x: integer, y: string, z: boolean, huh: char) = {
+    return 1;
+}
 
+/*
 function_call_empty_test: integer = test_fn_0();
 
 function_call_one_arg_test: integer = test_fn_1(10-1);
@@ -66,3 +69,4 @@ lt_test: boolean = x < 1;
 lt_equal_test: boolean = x <= 10;
 
 assignment_test: integer = x = 6;
+*/
