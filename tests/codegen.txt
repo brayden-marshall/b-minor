@@ -1,6 +1,17 @@
+global_integer: integer = 12345;
+global_boolean: boolean = true;
+global_character: char = 'x';
+global_string: string = "Hello, World!";
+
 func: function integer () = {
+    local_integer: integer = 54321;
+    local_boolean: boolean = false;
+    local_character: char = 'Y';
+    local_string: string = "!dlroW, olleH";
+
     add: integer = 1 + 1;
     subtract: integer = 10 - add;
     multiply: integer = subtract * add;
     divide: integer = multiply / multiply;
+    modulo: integer = 10 % multiply;
 };

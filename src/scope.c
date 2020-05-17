@@ -49,13 +49,13 @@ int scope_level() {
     return scope_stack_top+1;
 }
 
-void scope_bind(const char* name, Symbol* sym) {
+void scope_bind(const char* name, Symbol* symbol) {
     assert(scope_stack_top >= 0 && scope_stack_top < SCOPE_STACK_MAX);
 
-    sym->which = scope_stack_var_counts[scope_stack_top];
+    symbol->which = scope_stack_var_counts[scope_stack_top];
     scope_stack_var_counts[scope_stack_top]++;
 
-    hash_table_insert(scope_stack[scope_stack_top], name, sym);
+    hash_table_insert(scope_stack[scope_stack_top], name, symbol);
 }
 
 Symbol* scope_lookup(const char* name) {

@@ -170,6 +170,20 @@ void expr_codegen(Expr* e) {
         case EXPR_EXPONENT:
             break;
         case EXPR_MODULO:
+            // MOVQ right, %rax
+            // CQO
+            // IDIVQ left
+            // MOVQ %rdx, right
+            expr_codegen(e->left);
+            expr_codegen(e->right);
+
+            printf("MOVQ %s, %%rax\n", scratch_name(e->right->reg));
+            printf("CQO\n");
+            printf("IDIVQ %s\n", scratch_name(e->left->reg));
+            printf("MOVQ %%rdx, %s\n", scratch_name(e->right->reg));
+
+            e->reg = e->right->reg;
+            scratch_free(e->left->reg);
             break;
         case EXPR_NEGATE:
             break;
@@ -296,6 +310,7 @@ void stmt_codegen(Stmt* s) {
             break;
     }
 
+    printf("\n");
     stmt_codegen(s->next);
 }
 
@@ -303,8 +318,57 @@ void decl_codegen(Decl* d) {
     if (!d) return;
 
     // FIXME: incomplete
+
     stmt_codegen(d->code);
-    expr_codegen(d->value);
+    switch (d->type->kind) {
+        case TYPE_FUNCTION:
+            // FIXME: incomplete
+            break;
+        case TYPE_ARRAY:
+            // FIXME: incomplete
+            break;
+        case TYPE_STRING:
+            if (d->symbol->kind == SYMBOL_GLOBAL) {
+                printf(".data\n");
+                printf("%s:\n", symbol_codegen(d->symbol));
+                const char* init_value = "";
+                if (d->value) {
+                    init_value = d->value->string_literal;
+                }
+                printf("\t.string \"%s\"\n", init_value);
+                printf(".text\n\n");
+            } else {
+                // FIXME: local string declaration
+                printf("FIXME: local string declaration.\n");
+            }
+            break;
+        case TYPE_BOOLEAN:
+        case TYPE_CHAR:
+        case TYPE_INTEGER:
+            if (d->symbol->kind == SYMBOL_GLOBAL) {
+                printf(".data\n");
+                printf("%s:\n", symbol_codegen(d->symbol));
+                int init_value = 0;
+                if (d->value) {
+                    init_value = d->value->integer_value;
+                }
+                printf("\t.quad %d\n", init_value);
+                printf(".text\n\n");
+            } else {
+                expr_codegen(d->value);
+                //printf("d->value->reg is %d, d->symbol->name is %s\n", d->value, d->symbol->name);
+                printf(
+                    "MOVQ %s, %s\n",
+                    scratch_name(d->value->reg), symbol_codegen(d->symbol)
+                );
+                scratch_free(d->value->reg);
+            }
+            break;
+        case TYPE_VOID:
+            printf("Error: cannot create variable of type void.\n");
+            exit(1);
+            break;
+    }
 
     decl_codegen(d->next);
 }
