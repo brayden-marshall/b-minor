@@ -14,4 +14,10 @@ func: function integer () = {
     multiply: integer = subtract * add;
     divide: integer = multiply / multiply;
     modulo: integer = 10 % multiply;
+
+    // testing assignment
+    local_integer = 1;
+    local_boolean = true;
+    local_character = '!';
+    local_string = "Assignment";
 };

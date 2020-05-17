@@ -96,11 +96,24 @@ void expr_codegen(Expr* e) {
                 symbol_codegen(e->symbol),
                 scratch_name(e->reg));
             break;
-
         // literals
-        case EXPR_STRING_LITERAL:
-            break;
+        case EXPR_STRING_LITERAL: {
+            // .data
+            // .<label>:
+            //     .str <value>
+            // .text
+            printf(".data\n");
 
+            int str_label = label_create();
+            printf("%s:\n", label_name(str_label));
+            printf("\t.str \"%s\"\n", e->string_literal);
+            printf(".text\n");
+
+            e->reg = scratch_alloc();
+            printf("LEAQ %s, %s\n",
+                    label_name(str_label),
+                    scratch_name(e->reg));
+        } break;
         case EXPR_CHAR_LITERAL:
         case EXPR_INTEGER_LITERAL:
         case EXPR_BOOLEAN_LITERAL:
@@ -212,11 +225,11 @@ void expr_codegen(Expr* e) {
 
         // assignments
         case EXPR_ASSIGN:
-            expr_codegen(e->left);
+            expr_codegen(e->right);
             printf("MOVQ %s, %s\n",
-                    scratch_name(e->left->reg),
-                    symbol_codegen(e->right->symbol));
-            e->reg = e->left->reg;
+                    scratch_name(e->right->reg),
+                    symbol_codegen(e->left->symbol));
+            e->reg = e->right->reg;
             break;
         case EXPR_INCREMENT:
             break;
