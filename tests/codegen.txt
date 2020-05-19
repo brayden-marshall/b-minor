@@ -20,4 +20,11 @@ func: function integer () = {
     local_boolean = true;
     local_character = '!';
     local_string = "Assignment";
+
+    // testing if/else
+    if (false) {
+        return 10;
+    } else {
+        return local_integer;
+    }
 };

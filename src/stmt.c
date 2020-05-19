@@ -25,6 +25,7 @@ Stmt* stmt_create(
     s->else_body = else_body;
     s->next = next;
     s->symbol = NULL;
+    s->function_name = NULL;
     return s;
 }
 

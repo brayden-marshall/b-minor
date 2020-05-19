@@ -28,6 +28,9 @@ struct Stmt {
     Stmt* next;
 
     Symbol* symbol;
+
+    // for return statements
+    const char* function_name;
 };
 
 Stmt* stmt_create(

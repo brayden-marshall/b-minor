@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <assert.h>
 
 #include "x64_codegen.h"
 #include "symbol.h"
@@ -31,13 +32,13 @@ int scratch_alloc() {
         }
     }
     printf("Error: All registers are in use.\n");
-    exit(1);
+    assert(0);
 }
 
 void scratch_free(int r) {
     if (r < 0 || r >= X64_NUM_REGISTERS) {
         printf("Error: Register value passed to scratch_free (%d) is not a valid register.\n", r);
-        exit(1);
+        assert(0);
     }
     scratch_table.in_use[r] = 0;
 }
@@ -45,7 +46,7 @@ void scratch_free(int r) {
 const char* scratch_name(int r) {
     if (r < 0 || r >= X64_NUM_REGISTERS) {
         printf("Error: Register value passed to scratch_name (%d) is not a valid register.\n", r);
-        exit(1);
+        assert(0);
     }
     return scratch_table.name[r];
 }
@@ -70,7 +71,7 @@ const char* symbol_codegen(Symbol* s) {
     char* name = malloc(sizeof(char) * 256);
     if (name == 0) {
         printf("Error: ran out of memory.");
-        exit(1);
+        assert(0);
     }
 
     if (s->kind == SYMBOL_GLOBAL) {
@@ -315,7 +316,7 @@ void stmt_codegen(Stmt* s) {
         case STMT_RETURN:
             expr_codegen(s->expr);
             printf("MOVQ %s, %%rax\n", scratch_name(s->expr->reg));
-            printf("JMP .%s_epilogue\n", "***FIXME FUNCTION NAME GOES HERE***");
+            printf("JMP .%s_epilogue\n", s->function_name);
             scratch_free(s->expr->reg);
             break;
         case STMT_BLOCK:
@@ -379,7 +380,7 @@ void decl_codegen(Decl* d) {
             break;
         case TYPE_VOID:
             printf("Error: cannot create variable of type void.\n");
-            exit(1);
+            assert(0);
             break;
     }
 

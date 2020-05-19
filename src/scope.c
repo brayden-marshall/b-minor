@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <string.h>
 
 #include "type.h"
 
@@ -9,6 +10,8 @@
 #include "hash_table.h"
 
 static int scope_stack_top = 0;
+static const char* current_function_name = NULL;
+extern int scope_error;
 
 extern struct hash_table* scope_stack[SCOPE_STACK_MAX];
 
@@ -91,10 +94,16 @@ void decl_resolve(Decl* d) {
     scope_bind(d->name, d->symbol);
 
     if (d->code) {
+        if (d->type->kind == TYPE_FUNCTION) {
+            current_function_name = d->name;
+        }
+
         scope_enter();
         param_list_resolve(d->type->params);
         stmt_resolve(d->code->body);
         scope_exit();
+
+        current_function_name = NULL;
     }
 
     decl_resolve(d->next);
@@ -123,6 +132,13 @@ void stmt_resolve(Stmt* s) {
         stmt_resolve(s->body);
         scope_exit();
     } else {
+        if (s->kind == STMT_RETURN) {
+            if (current_function_name == NULL) {
+                printf("Error: return statement outside of function.\n");
+                scope_error = 1;
+            }
+            s->function_name = strdup(current_function_name);
+        }
         decl_resolve(s->decl);
         expr_resolve(s->init_expr);
         expr_resolve(s->expr);
