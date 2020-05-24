@@ -289,7 +289,7 @@ void expr_codegen(Expr* e) {
             // call the function
             // e->left should always be set to an EXPR_NAME with the name of
             // the function being called
-            assert(e->left);
+            assert(e->left && e->left->kind == EXPR_NAME);
             fprintf(output_file, "CALL %s\n", e->left->name);
 
             // restore the caller-saved registers
@@ -376,8 +376,59 @@ void stmt_codegen(Stmt* s) {
 
             fprintf(output_file, "%s:\n", label_name(done_label));
         } break;
-        case STMT_PRINT:
-            break;
+        case STMT_PRINT: {
+
+            Expr* current_arg = s->expr;
+            while (current_arg != NULL) {
+                fprintf(output_file, "PUSHQ %%rdx\n");
+                expr_codegen(current_arg->left);
+                switch (current_arg->left->kind) {
+                    case EXPR_BOOLEAN_LITERAL: {
+                        int else_label = label_create();
+                        int end_label = label_create();
+                        fprintf(output_file, "CMP $0, %s\n",
+                                scratch_name(current_arg->left->reg));
+                        fprintf(output_file, "JE %s\n",
+                                label_name(else_label));
+
+                        fprintf(output_file, "LEAQ __STR_TRUE(%%rip), %%rsi\n");
+                        fprintf(output_file, "MOVQ $4, %%rdx\n");
+                        fprintf(output_file, "JMP %s\n", label_name(end_label));
+
+                        fprintf(output_file, "%s:\n", label_name(else_label));
+                        fprintf(output_file, "LEAQ __STR_FALSE(%%rip), %%rsi\n");
+                        fprintf(output_file, "MOVQ $5, %%rdx\n");
+
+                        fprintf(output_file, "%s:\n", label_name(end_label));
+                    } break;
+                    case EXPR_CHAR_LITERAL:
+                        break;
+                    case EXPR_INTEGER_LITERAL:
+                        break;
+                    case EXPR_STRING_LITERAL:
+                        break;
+                    default:
+                        printf("FIXME: print statement with non literal.\n");
+                        break;
+                }
+
+                fprintf(output_file, "PUSHQ %%rax\n");
+                fprintf(output_file, "PUSHQ %%rbx\n");
+
+                // move 'write' syscall number (1) into %rax
+                fprintf(output_file, "MOVQ $1, %%rax\n");
+                // move stdout file descriptor into param 1 register
+                fprintf(output_file, "MOVQ $1, %%rbx\n");
+                fprintf(output_file, "syscall\n");
+
+                fprintf(output_file, "POPQ %%rbx\n");
+                fprintf(output_file, "POPQ %%rax\n");
+                fprintf(output_file, "POPQ %%rdx\n");
+
+                scratch_free(current_arg->left->reg);
+                current_arg = current_arg->right;
+            }
+        } break;
         case STMT_RETURN:
             expr_codegen(s->expr);
             fprintf(output_file, "MOVQ %s, %%rax\n", scratch_name(s->expr->reg));
@@ -513,6 +564,13 @@ void decl_codegen(Decl* d) {
 
 FILE* codegen(Decl* decl, const char* output_filename) {
     output_file = fopen(output_filename, "w+");
+
+    fprintf(output_file, ".data\n");
+    fprintf(output_file, "__STR_TRUE:\n");
+    fprintf(output_file, "\t.string \"true\"\n");
+    fprintf(output_file, "__STR_FALSE:\n");
+    fprintf(output_file, "\t.string \"false\"\n");
+    fprintf(output_file, ".text\n");
 
     decl_codegen(decl);
 

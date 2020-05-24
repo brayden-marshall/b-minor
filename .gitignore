@@ -1,7 +1,8 @@
 bin/
 obj/
 
-./*.s
+*.s
+output
 scanner.c
 parser.c
 parser.h

@@ -32,6 +32,9 @@ main: function integer () = {
     // test function call
     function_call: integer = func_many_args(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
 
+    // print statement
+    print false;
+
     // testing if/else
     //if (false) {
     //    return 10;
