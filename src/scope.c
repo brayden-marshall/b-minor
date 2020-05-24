@@ -60,7 +60,6 @@ void scope_bind(const char* name, Symbol* symbol) {
     if (symbol->kind == SYMBOL_LOCAL) {
         symbol->which = scope_stack_var_counts[scope_stack_top];
         scope_stack_var_counts[scope_stack_top]++;
-        printf("Local variable %s has ->which %d\n", name, symbol->which);
     }
 
     hash_table_insert(scope_stack[scope_stack_top], name, symbol);

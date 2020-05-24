@@ -78,8 +78,6 @@ Stmt* stmt_create_for(
     );
 }
 
-int x = 1234;
-
 Stmt* stmt_create_decl(Decl* decl) {
     return stmt_create(
         STMT_DECL, decl, 0, 0, 0, 0, 0, 0

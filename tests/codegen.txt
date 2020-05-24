@@ -3,6 +3,14 @@ global_boolean: boolean = true;
 global_character: char = 'x';
 global_string: string = "Hello, World!";
 
+func_many_args: function integer (
+    a: integer, b: integer, c: integer, d: integer, e: integer,
+    f: integer, g: integer, h: integer, i: integer, j: integer,
+) = {
+    k: integer = j + 1;
+    return a + b + c + d + e + f + g + h + i + j + k;
+}
+
 main: function integer () = {
     local_integer: integer = 54321;
     local_boolean: boolean = false;
@@ -21,18 +29,13 @@ main: function integer () = {
     local_character = '!';
     //local_string = "Assignment";
 
+    // test function call
+    function_call: integer = func_many_args(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+
     // testing if/else
     //if (false) {
     //    return 10;
     //} else {
     //    return local_integer;
     //}
-}
-
-func_many_args: function integer (
-    a: integer, b: integer, c: integer, d: integer, e: integer,
-    f: integer, g: integer, h: integer, i: integer, j: integer,
-) = {
-    k: integer = j + 1;
-    return a + b + c + d + e + f + g + h + i + j + k;
 }

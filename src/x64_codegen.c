@@ -11,10 +11,6 @@
 #define X64_NUM_SCRATCH_REGISTERS 7
 #define X64_NUM_ARGUMENT_REGISTERS 6
 
-//
-// scratch register stuff
-//
-
 FILE* output_file = NULL;
 
 const char* argument_registers[X64_NUM_ARGUMENT_REGISTERS] = {
@@ -252,11 +248,66 @@ void expr_codegen(Expr* e) {
             break;
 
         // misc.
-        case EXPR_CALL:
-            break;
+        case EXPR_CALL: {
+            // load the arguments into registers/onto stack
+            {
+                Expr* current_arg = e->right;
+                int i = 0;
+                // this puts a practical limit of 2048 for number of function
+                // parameters. big whoop
+                Expr* arg_stack[2048];
+                for (; current_arg != NULL;
+                    i++, current_arg = current_arg->right
+                ) {
+                    arg_stack[i] = current_arg;
+                }
+
+                for (int j = i-1; j >= 0; j--) {
+                    current_arg = arg_stack[j];
+                    expr_codegen(current_arg);
+                    //printf("current_arg->reg is %d\n", current_arg->reg);
+                    if (j < X64_NUM_ARGUMENT_REGISTERS) {
+                        fprintf(output_file,
+                                "MOVQ %s, %s\n",
+                                scratch_name(current_arg->reg),
+                                argument_registers[j]);
+                    } else {
+                        fprintf(output_file,
+                                "PUSHQ %s\n",
+                                scratch_name(current_arg->reg));
+                    }
+                    scratch_free(current_arg->reg);
+                }
+            }
+            // zero floating point args
+            fprintf(output_file, "XOR %%rax, %%rax\n\n");
+
+            // save the caller-saved registers
+            fprintf(output_file, "PUSHQ %%r10\n");
+            fprintf(output_file, "PUSHQ %%r11\n");
+
+            // call the function
+            // e->left should always be set to an EXPR_NAME with the name of
+            // the function being called
+            assert(e->left);
+            fprintf(output_file, "CALL %s\n", e->left->name);
+
+            // restore the caller-saved registers
+            fprintf(output_file, "POPQ %%r11\n");
+            fprintf(output_file, "POPQ %%r10\n");
+
+            // save the argument into a scratch register
+            e->reg = scratch_alloc();
+            fprintf(output_file,
+                    "MOVQ %%rax, %s\n",
+                    scratch_name(e->reg));
+        } break;
         case EXPR_INIT_LIST:
             break;
         case EXPR_ARG:
+            expr_codegen(e->left);
+            e->reg = e->left->reg;
+            //printf("FIXME: expr_codegen for EXPR_ARG\n");
             break;
         case EXPR_SUBSCRIPT:
             break;
@@ -360,19 +411,23 @@ void decl_codegen(Decl* d) {
             fprintf(output_file, "PUSHQ %%rbp\n");
             fprintf(output_file, "MOVQ %%rsp, %%rbp\n");
 
-            // save arguments FIXME: incomplete
-            ParamList* current_param = d->type->params;
-            for (int i = 0; current_param != NULL;
-                 i++, current_param = current_param->next) {
-                printf("Argument %s has ->symbol->which of %d\n",
-                        current_param->name, current_param->symbol->which);
-                fprintf(output_file, "PUSHQ %s\n",
-                        symbol_codegen(current_param->symbol));
+            // save arguments
+            {
+                ParamList* current = d->type->params;
+                for (int i = 0; current != NULL;
+                    i++, current = current->next
+                ) {
+                    fprintf(output_file,
+                            "PUSHQ %s\n",
+                            symbol_codegen(current->symbol));
+                }
             }
 
             // allocate space for local variables FIXME: incomplete
             if (d->local_var_count > 0) {
-                fprintf(output_file, "\nSUBQ $%d, %%rsp\n\n", 8 * d->local_var_count);
+                fprintf(output_file,
+                        "\nSUBQ $%d, %%rsp\n\n",
+                        8 * d->local_var_count);
             }
 
             // save callee-saved registers
