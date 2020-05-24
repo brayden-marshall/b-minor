@@ -53,6 +53,18 @@ int param_list_equals(ParamList* a, ParamList* b) {
     return param_list_equals(a->next, b->next);
 }
 
+int param_list_length(ParamList* p) {
+    ParamList* current = p;
+    int count = 0;
+
+    while (current != NULL) {
+        count++;
+        current = current->next;
+    }
+
+    return count;
+}
+
 ParamList* param_list_copy(ParamList* p) {
     if (!p) return 0;
 

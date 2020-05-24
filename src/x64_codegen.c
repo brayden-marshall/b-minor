@@ -8,15 +8,22 @@
 #include "stmt.h"
 #include "decl.h"
 
-#define X64_NUM_REGISTERS 7
+#define X64_NUM_SCRATCH_REGISTERS 7
+#define X64_NUM_ARGUMENT_REGISTERS 6
 
 //
 // scratch register stuff
 //
 
+FILE* output_file = NULL;
+
+const char* argument_registers[X64_NUM_ARGUMENT_REGISTERS] = {
+    "%rdi", "%rsi", "%rdx", "%rcx", "%r8", "%r9",
+};
+
 struct ScratchTable {
-    const char* name[X64_NUM_REGISTERS];
-    int in_use[X64_NUM_REGISTERS];
+    const char* name[X64_NUM_SCRATCH_REGISTERS];
+    int in_use[X64_NUM_SCRATCH_REGISTERS];
 };
 
 struct ScratchTable scratch_table = {
@@ -25,7 +32,7 @@ struct ScratchTable scratch_table = {
 };
 
 int scratch_alloc() {
-    for (int r = 0; r < X64_NUM_REGISTERS; r++) {
+    for (int r = 0; r < X64_NUM_SCRATCH_REGISTERS; r++) {
         if (!scratch_table.in_use[r]) {
             scratch_table.in_use[r] = 1;
             return r;
@@ -36,7 +43,7 @@ int scratch_alloc() {
 }
 
 void scratch_free(int r) {
-    if (r < 0 || r >= X64_NUM_REGISTERS) {
+    if (r < 0 || r >= X64_NUM_SCRATCH_REGISTERS) {
         printf("Error: Register value passed to scratch_free (%d) is not a valid register.\n", r);
         assert(0);
     }
@@ -44,7 +51,7 @@ void scratch_free(int r) {
 }
 
 const char* scratch_name(int r) {
-    if (r < 0 || r >= X64_NUM_REGISTERS) {
+    if (r < 0 || r >= X64_NUM_SCRATCH_REGISTERS) {
         printf("Error: Register value passed to scratch_name (%d) is not a valid register.\n", r);
         assert(0);
     }
@@ -76,10 +83,17 @@ const char* symbol_codegen(Symbol* s) {
 
     if (s->kind == SYMBOL_GLOBAL) {
         name = s->name;
-    } else {
+    } else if (s->kind == SYMBOL_LOCAL) {
         // (s->which+1) here to convert from zero-based
-        int offset_abs = (s->which+1)*8;
-        sprintf(name, "-%d(%%rbp)", offset_abs);
+        int offset = (s->which+1)*8;
+        sprintf(name, "-%d(%%rbp)", offset);
+    } else if (s->kind == SYMBOL_PARAM) {
+        if (s->which < X64_NUM_ARGUMENT_REGISTERS) {
+            sprintf(name, "%s", argument_registers[s->which]);
+        } else {
+            int offset = 16 + ((s->which - X64_NUM_ARGUMENT_REGISTERS) * 8);
+            sprintf(name, "%d(%%rbp)", offset);
+        }
     }
     //printf("s->name gets symbol %s\n", name);
 
@@ -93,7 +107,7 @@ void expr_codegen(Expr* e) {
         // LEAF node: allocate register and load value
         case EXPR_NAME:
             e->reg = scratch_alloc();
-            printf("MOVQ %s, %s\n",
+            fprintf(output_file, "MOVQ %s, %s\n",
                 symbol_codegen(e->symbol),
                 scratch_name(e->reg));
             break;
@@ -103,15 +117,15 @@ void expr_codegen(Expr* e) {
             // .<label>:
             //     .str <value>
             // .text
-            printf(".data\n");
+            fprintf(output_file, ".data\n");
 
             int str_label = label_create();
-            printf("%s:\n", label_name(str_label));
-            printf("\t.str \"%s\"\n", e->string_literal);
-            printf(".text\n");
+            fprintf(output_file, "%s:\n", label_name(str_label));
+            fprintf(output_file, "\t.str \"%s\"\n", e->string_literal);
+            fprintf(output_file, ".text\n");
 
             e->reg = scratch_alloc();
-            printf("LEAQ %s, %s\n",
+            fprintf(output_file, "LEAQ %s, %s\n",
                     label_name(str_label),
                     scratch_name(e->reg));
         } break;
@@ -119,7 +133,7 @@ void expr_codegen(Expr* e) {
         case EXPR_INTEGER_LITERAL:
         case EXPR_BOOLEAN_LITERAL:
             e->reg = scratch_alloc();
-            printf("MOVQ %d, %s\n",
+            fprintf(output_file, "MOVQ $%d, %s\n",
                 e->integer_value,
                 scratch_name(e->reg));
             break;
@@ -132,7 +146,7 @@ void expr_codegen(Expr* e) {
             expr_codegen(e->left);
             expr_codegen(e->right);
 
-            printf("ADDQ %s, %s\n",
+            fprintf(output_file, "ADDQ %s, %s\n",
                 scratch_name(e->left->reg),
                 scratch_name(e->right->reg));
 
@@ -144,7 +158,7 @@ void expr_codegen(Expr* e) {
             expr_codegen(e->left);
             expr_codegen(e->right);
 
-            printf("SUBQ %s, %s\n",
+            fprintf(output_file, "SUBQ %s, %s\n",
                 scratch_name(e->left->reg),
                 scratch_name(e->right->reg));
 
@@ -158,9 +172,9 @@ void expr_codegen(Expr* e) {
             expr_codegen(e->left);
             expr_codegen(e->right);
 
-            printf("MOVQ %s, %%rax\n", scratch_name(e->left->reg));
-            printf("IMULQ %s\n",       scratch_name(e->right->reg));
-            printf("MOVQ %%rax, %s\n", scratch_name(e->right->reg));
+            fprintf(output_file, "MOVQ %s, %%rax\n", scratch_name(e->left->reg));
+            fprintf(output_file, "IMULQ %s\n",       scratch_name(e->right->reg));
+            fprintf(output_file, "MOVQ %%rax, %s\n", scratch_name(e->right->reg));
 
             e->reg = e->right->reg;
             scratch_free(e->left->reg);
@@ -173,10 +187,10 @@ void expr_codegen(Expr* e) {
             expr_codegen(e->left);
             expr_codegen(e->right);
 
-            printf("MOVQ %s, %%rax\n", scratch_name(e->right->reg));
-            printf("CQO\n");
-            printf("IDIVQ %s\n", scratch_name(e->left->reg));
-            printf("MOVQ %%rax, %s\n", scratch_name(e->right->reg));
+            fprintf(output_file, "MOVQ %s, %%rax\n", scratch_name(e->right->reg));
+            fprintf(output_file, "CQO\n");
+            fprintf(output_file, "IDIVQ %s\n", scratch_name(e->left->reg));
+            fprintf(output_file, "MOVQ %%rax, %s\n", scratch_name(e->right->reg));
 
             e->reg = e->right->reg;
             scratch_free(e->left->reg);
@@ -191,10 +205,10 @@ void expr_codegen(Expr* e) {
             expr_codegen(e->left);
             expr_codegen(e->right);
 
-            printf("MOVQ %s, %%rax\n", scratch_name(e->right->reg));
-            printf("CQO\n");
-            printf("IDIVQ %s\n", scratch_name(e->left->reg));
-            printf("MOVQ %%rdx, %s\n", scratch_name(e->right->reg));
+            fprintf(output_file, "MOVQ %s, %%rax\n", scratch_name(e->right->reg));
+            fprintf(output_file, "CQO\n");
+            fprintf(output_file, "IDIVQ %s\n", scratch_name(e->left->reg));
+            fprintf(output_file, "MOVQ %%rdx, %s\n", scratch_name(e->right->reg));
 
             e->reg = e->right->reg;
             scratch_free(e->left->reg);
@@ -227,7 +241,7 @@ void expr_codegen(Expr* e) {
         // assignments
         case EXPR_ASSIGN:
             expr_codegen(e->right);
-            printf("MOVQ %s, %s\n",
+            fprintf(output_file, "MOVQ %s, %s\n",
                     scratch_name(e->right->reg),
                     symbol_codegen(e->left->symbol));
             e->reg = e->right->reg;
@@ -266,18 +280,18 @@ void stmt_codegen(Stmt* s) {
 
             // condition expr
             expr_codegen(s->expr);
-            printf("CMP %s, $0\n", scratch_name(s->expr->reg));
+            fprintf(output_file, "CMP %s, $0\n", scratch_name(s->expr->reg));
             scratch_free(s->expr->reg);
-            printf("JE %s\n", label_name(else_label));
+            fprintf(output_file, "JE %s\n", label_name(else_label));
 
             // if branch
             stmt_codegen(s->body);
-            printf("JMP %s\n", label_name(done_label));
+            fprintf(output_file, "JMP %s\n", label_name(done_label));
 
             // else branch
-            printf("%s:\n", label_name(else_label));
+            fprintf(output_file, "%s:\n", label_name(else_label));
             stmt_codegen(s->else_body);
-            printf("%s:\n", label_name(done_label));
+            fprintf(output_file, "%s:\n", label_name(done_label));
         } break;
         case STMT_FOR: {
             int top_label = label_create();
@@ -289,14 +303,14 @@ void stmt_codegen(Stmt* s) {
                 scratch_free(s->init_expr->reg);
             }
 
-            printf("%s:\n", label_name(top_label));
+            fprintf(output_file, "%s:\n", label_name(top_label));
 
             // condition expr
             if (s->expr) {
                 expr_codegen(s->expr);
-                printf("CMP %s, $0\n", scratch_name(s->expr->reg));
+                fprintf(output_file, "CMP %s, $0\n", scratch_name(s->expr->reg));
                 scratch_free(s->expr->reg);
-                printf("JE %s\n", label_name(done_label));
+                fprintf(output_file, "JE %s\n", label_name(done_label));
             }
 
             // body
@@ -307,16 +321,16 @@ void stmt_codegen(Stmt* s) {
                 expr_codegen(s->next_expr);
                 scratch_free(s->next_expr->reg);
             }
-            printf("JMP %s\n", label_name(top_label));
+            fprintf(output_file, "JMP %s\n", label_name(top_label));
 
-            printf("%s:\n", label_name(done_label));
+            fprintf(output_file, "%s:\n", label_name(done_label));
         } break;
         case STMT_PRINT:
             break;
         case STMT_RETURN:
             expr_codegen(s->expr);
-            printf("MOVQ %s, %%rax\n", scratch_name(s->expr->reg));
-            printf("JMP .%s_epilogue\n", s->function_name);
+            fprintf(output_file, "MOVQ %s, %%rax\n", scratch_name(s->expr->reg));
+            fprintf(output_file, "JMP .%s_epilogue\n", s->function_name);
             scratch_free(s->expr->reg);
             break;
         case STMT_BLOCK:
@@ -324,33 +338,88 @@ void stmt_codegen(Stmt* s) {
             break;
     }
 
-    printf("\n");
+    fprintf(output_file, "\n");
     stmt_codegen(s->next);
 }
 
 void decl_codegen(Decl* d) {
     if (!d) return;
 
-    // FIXME: incomplete
-
-    stmt_codegen(d->code);
     switch (d->type->kind) {
         case TYPE_FUNCTION:
             // FIXME: incomplete
+            // directives and label
+            fprintf(output_file, ".text\n");
+            fprintf(output_file, ".global %s\n", d->name);
+            fprintf(output_file, "%s:\n", d->name);
+
+            // ***********
+            // ** Prologue
+            // ***********
+            // save the old base pointer and set the new one
+            fprintf(output_file, "PUSHQ %%rbp\n");
+            fprintf(output_file, "MOVQ %%rsp, %%rbp\n");
+
+            // save arguments FIXME: incomplete
+            ParamList* current_param = d->type->params;
+            for (int i = 0; current_param != NULL;
+                 i++, current_param = current_param->next) {
+                printf("Argument %s has ->symbol->which of %d\n",
+                        current_param->name, current_param->symbol->which);
+                fprintf(output_file, "PUSHQ %s\n",
+                        symbol_codegen(current_param->symbol));
+            }
+
+            // allocate space for local variables FIXME: incomplete
+            if (d->local_var_count > 0) {
+                fprintf(output_file, "\nSUBQ $%d, %%rsp\n\n", 8 * d->local_var_count);
+            }
+
+            // save callee-saved registers
+            fprintf(output_file, "PUSHQ %%rbx\n");
+            fprintf(output_file, "PUSHQ %%r12\n");
+            fprintf(output_file, "PUSHQ %%r13\n");
+            fprintf(output_file, "PUSHQ %%r14\n");
+            fprintf(output_file, "PUSHQ %%r15\n\n");
+            
+            // ***********
+            // ** Body
+            // ***********
+            stmt_codegen(d->code);
+
+            // ***********
+            // ** Epilogue
+            // ***********
+
+            fprintf(output_file, ".%s_epilogue:\n", d->name);
+
+            // restore callee-saved registers
+            fprintf(output_file, "POPQ %%r15\n");
+            fprintf(output_file, "POPQ %%r14\n");
+            fprintf(output_file, "POPQ %%r13\n");
+            fprintf(output_file, "POPQ %%r12\n");
+            fprintf(output_file, "POPQ %%rbx\n");
+
+            // reset stack pointer and recove base pointer
+            fprintf(output_file, "MOVQ %%rbp, %%rsp\n");
+            fprintf(output_file, "POPQ %%rbp\n");
+
+            // return
+            fprintf(output_file, "RET\n");
             break;
         case TYPE_ARRAY:
             // FIXME: incomplete
             break;
         case TYPE_STRING:
             if (d->symbol->kind == SYMBOL_GLOBAL) {
-                printf(".data\n");
-                printf("%s:\n", symbol_codegen(d->symbol));
+                fprintf(output_file, ".data\n");
+                fprintf(output_file, "%s:\n", symbol_codegen(d->symbol));
                 const char* init_value = "";
                 if (d->value) {
                     init_value = d->value->string_literal;
                 }
-                printf("\t.string \"%s\"\n", init_value);
-                printf(".text\n\n");
+                fprintf(output_file, "\t.string \"%s\"\n", init_value);
+                fprintf(output_file, ".text\n\n");
             } else {
                 // FIXME: local string declaration
                 printf("FIXME: local string declaration.\n");
@@ -360,18 +429,18 @@ void decl_codegen(Decl* d) {
         case TYPE_CHAR:
         case TYPE_INTEGER:
             if (d->symbol->kind == SYMBOL_GLOBAL) {
-                printf(".data\n");
-                printf("%s:\n", symbol_codegen(d->symbol));
+                fprintf(output_file, ".data\n");
+                fprintf(output_file, "%s:\n", symbol_codegen(d->symbol));
                 int init_value = 0;
                 if (d->value) {
                     init_value = d->value->integer_value;
                 }
-                printf("\t.quad %d\n", init_value);
-                printf(".text\n\n");
+                fprintf(output_file, "\t.quad %d\n", init_value);
+                fprintf(output_file, ".text\n\n");
             } else {
                 expr_codegen(d->value);
                 //printf("d->value->reg is %d, d->symbol->name is %s\n", d->value, d->symbol->name);
-                printf(
+                fprintf(output_file,
                     "MOVQ %s, %s\n",
                     scratch_name(d->value->reg), symbol_codegen(d->symbol)
                 );
@@ -385,4 +454,12 @@ void decl_codegen(Decl* d) {
     }
 
     decl_codegen(d->next);
+}
+
+FILE* codegen(Decl* decl, const char* output_filename) {
+    output_file = fopen(output_filename, "w+");
+
+    decl_codegen(decl);
+
+    return output_file;
 }

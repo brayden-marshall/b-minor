@@ -77,7 +77,7 @@ int main(int argc, char** argv) {
     decl_typecheck(parser_result);
 
     // codegen
-    decl_codegen(parser_result);
+    codegen(parser_result, "output.s");
 
     decl_delete(parser_result);
     fclose(yyin);

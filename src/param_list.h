@@ -23,6 +23,8 @@ void param_list_print(ParamList* p);
 
 int param_list_equals(ParamList* a, ParamList* b);
 
+int param_list_length(ParamList* p);
+
 ParamList* param_list_copy(ParamList* p);
 
 #endif

@@ -1,6 +1,8 @@
 #ifndef X64_CODEGEN_H
 #define X64_CODEGEN_H
 
+#include <stdio.h>
+
 #include "symbol.h"
 #include "expr.h"
 #include "stmt.h"
@@ -23,5 +25,7 @@ void expr_codegen(Expr* e);
 void stmt_codegen(Stmt* s);
 
 void decl_codegen(Decl* d);
+
+FILE* codegen(Decl* d, const char* output_filename);
 
 #endif

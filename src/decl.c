@@ -20,6 +20,7 @@ Decl* decl_create(
     d->code = code;
     d->next = next;
     d->symbol = NULL;
+    d->local_var_count = 0;
     return d;
 }
 

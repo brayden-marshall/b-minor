@@ -9,6 +9,8 @@
 #include "symbol.h"
 #include "hash_table.h"
 
+#define X64_NUM_ARGUMENT_REGISTERS 6
+
 static int scope_stack_top = 0;
 static const char* current_function_name = NULL;
 extern int scope_error;
@@ -55,8 +57,11 @@ int scope_level() {
 void scope_bind(const char* name, Symbol* symbol) {
     assert(scope_stack_top >= 0 && scope_stack_top < SCOPE_STACK_MAX);
 
-    symbol->which = scope_stack_var_counts[scope_stack_top];
-    scope_stack_var_counts[scope_stack_top]++;
+    if (symbol->kind == SYMBOL_LOCAL) {
+        symbol->which = scope_stack_var_counts[scope_stack_top];
+        scope_stack_var_counts[scope_stack_top]++;
+        printf("Local variable %s has ->which %d\n", name, symbol->which);
+    }
 
     hash_table_insert(scope_stack[scope_stack_top], name, symbol);
 }
@@ -99,8 +104,11 @@ void decl_resolve(Decl* d) {
         }
 
         scope_enter();
+
         param_list_resolve(d->type->params);
         stmt_resolve(d->code->body);
+        d->local_var_count = scope_stack_var_counts[scope_stack_top];
+
         scope_exit();
 
         current_function_name = NULL;
@@ -150,11 +158,10 @@ void stmt_resolve(Stmt* s) {
 }
 
 void param_list_resolve(ParamList* p) {
-    if (!p) return;
-
-    p->symbol = symbol_create(SYMBOL_PARAM, p->type, p->name);
-
-    scope_bind(p->name, p->symbol);
-
-    param_list_resolve(p->next);
+    ParamList* current = p;
+    for (int i = 0; current != NULL; i++, current = current->next) {
+        current->symbol = symbol_create(SYMBOL_PARAM, current->type, current->name);
+        current->symbol->which = i;
+        scope_bind(current->name, current->symbol);
+    }
 }

@@ -12,6 +12,8 @@ typedef struct Decl {
     Stmt* code;
     Decl* next;
     Symbol* symbol;
+
+    int local_var_count;
 } Decl;
 
 Decl* decl_create(
