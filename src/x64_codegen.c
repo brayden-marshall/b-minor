@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <assert.h>
 
 #include "x64_codegen.h"
@@ -117,11 +118,11 @@ void expr_codegen(Expr* e) {
 
             int str_label = label_create();
             fprintf(output_file, "%s:\n", label_name(str_label));
-            fprintf(output_file, "\t.str \"%s\"\n", e->string_literal);
+            fprintf(output_file, "\t.string \"%s\"\n", e->string_literal);
             fprintf(output_file, ".text\n");
 
             e->reg = scratch_alloc();
-            fprintf(output_file, "LEAQ %s, %s\n",
+            fprintf(output_file, "LEAQ %s(%%rip), %s\n",
                     label_name(str_label),
                     scratch_name(e->reg));
         } break;
@@ -391,22 +392,26 @@ void stmt_codegen(Stmt* s) {
                         fprintf(output_file, "JE %s\n",
                                 label_name(else_label));
 
-                        fprintf(output_file, "LEAQ __STR_TRUE(%%rip), %%rsi\n");
+                        fprintf(output_file, "LEAQ .__STR_TRUE(%%rip), %%rsi\n");
                         fprintf(output_file, "MOVQ $4, %%rdx\n");
                         fprintf(output_file, "JMP %s\n", label_name(end_label));
 
                         fprintf(output_file, "%s:\n", label_name(else_label));
-                        fprintf(output_file, "LEAQ __STR_FALSE(%%rip), %%rsi\n");
+                        fprintf(output_file, "LEAQ .__STR_FALSE(%%rip), %%rsi\n");
                         fprintf(output_file, "MOVQ $5, %%rdx\n");
 
                         fprintf(output_file, "%s:\n", label_name(end_label));
                     } break;
-                    case EXPR_CHAR_LITERAL:
-                        break;
-                    case EXPR_INTEGER_LITERAL:
-                        break;
-                    case EXPR_STRING_LITERAL:
-                        break;
+                    case EXPR_CHAR_LITERAL: {
+                    } break;
+                    case EXPR_INTEGER_LITERAL: {
+                    } break;
+                    case EXPR_STRING_LITERAL: {
+                        fprintf(output_file, "MOVQ %s, %%rsi\n",
+                                scratch_name(current_arg->left->reg));
+                        fprintf(output_file, "MOVQ $%lu, %%rdx\n",
+                                strlen(current_arg->left->string_literal));
+                    } break;
                     default:
                         printf("FIXME: print statement with non literal.\n");
                         break;
@@ -566,9 +571,9 @@ FILE* codegen(Decl* decl, const char* output_filename) {
     output_file = fopen(output_filename, "w+");
 
     fprintf(output_file, ".data\n");
-    fprintf(output_file, "__STR_TRUE:\n");
+    fprintf(output_file, ".__STR_TRUE:\n");
     fprintf(output_file, "\t.string \"true\"\n");
-    fprintf(output_file, "__STR_FALSE:\n");
+    fprintf(output_file, ".__STR_FALSE:\n");
     fprintf(output_file, "\t.string \"false\"\n");
     fprintf(output_file, ".text\n");
 
