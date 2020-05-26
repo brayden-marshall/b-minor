@@ -101,7 +101,6 @@ void expr_codegen(Expr* e) {
     if (!e) return;
 
     switch (e->kind) {
-        // LEAF node: allocate register and load value
         case EXPR_NAME:
             e->reg = scratch_alloc();
             fprintf(output_file, "MOVQ %s, %s\n",
@@ -134,8 +133,6 @@ void expr_codegen(Expr* e) {
                 e->integer_value,
                 scratch_name(e->reg));
             break;
-        
-        // Interior node: generate children, then add them.
         
         // arithmetic expressions
         case EXPR_ADD:
@@ -193,6 +190,7 @@ void expr_codegen(Expr* e) {
             scratch_free(e->left->reg);
             break;
         case EXPR_EXPONENT:
+            printf("FIXME: codegen EXPR_EXPONENT unimplemented.\n");
             break;
         case EXPR_MODULO: {
             // MOVQ right, %rax
@@ -211,28 +209,57 @@ void expr_codegen(Expr* e) {
             scratch_free(e->left->reg);
         } break;
         case EXPR_NEGATE:
+            printf("FIXME: codegen EXPR_NEGATE unimplemented.\n");
             break;
 
         // logical operations
         case EXPR_LOGICAL_OR:
+            printf("FIXME: codegen EXPR_LOGICAL_OR unimplemented.\n");
             break;
         case EXPR_LOGICAL_AND:
+            printf("FIXME: codegen EXPR_LOGICAL_AND unimplemented.\n");
             break;
         case EXPR_LOGICAL_NOT:
+            printf("FIXME: codegen EXPR_LOGICAL_NOT unimplemented.\n");
             break;
 
         // conditionals
         case EXPR_CMP_EQUAL:
+            printf("FIXME: codegen EXPR_CMP_EQUAL unimplemented.\n");
             break;
         case EXPR_CMP_NOT_EQUAL:
+            printf("FIXME: codegen EXPR_CMP_NOT_EQUAL unimplemented.\n");
             break;
         case EXPR_CMP_GT:
+            printf("FIXME: codegen EXP_CMP_GT unimplemented.\n");
             break;
         case EXPR_CMP_GT_EQUAL:
+            printf("FIXME: codegen EXPR_CMP_GT_EQUAL unimplemented.\n");
             break;
         case EXPR_CMP_LT:
+            expr_codegen(e->left);
+            expr_codegen(e->right);
+
+            int top_label = label_create();
+            int end_label = label_create();
+
+            fprintf(output_file, "CMP %s, %s\n",
+                    scratch_name(e->right->reg),
+                    scratch_name(e->left->reg));
+
+            fprintf(output_file, "JL %s\n", label_name(top_label));
+            fprintf(output_file, "MOVQ $0, %s\n", scratch_name(e->right->reg));
+            fprintf(output_file, "JMP %s\n", label_name(end_label));
+            fprintf(output_file, "%s:\n", label_name(top_label));
+
+            fprintf(output_file, "MOVQ $1, %s\n", scratch_name(e->right->reg));
+            fprintf(output_file, "%s:\n", label_name(end_label));
+
+            scratch_free(e->left->reg);
+            e->reg = e->right->reg;
             break;
         case EXPR_CMP_LT_EQUAL:
+            printf("FIXME: codegen EXPR_CMP_LT_EQUAL unimplemented.\n");
             break;
 
         // assignments
@@ -244,8 +271,10 @@ void expr_codegen(Expr* e) {
             e->reg = e->right->reg;
             break;
         case EXPR_INCREMENT:
+            printf("FIXME: codegen EXPR_INCREMENT unimplemented.\n");
             break;
         case EXPR_DECREMENT:
+            printf("FIXME: codegen EXPR_DECREMENT unimplemented.\n");
             break;
 
         // misc.
@@ -306,13 +335,14 @@ void expr_codegen(Expr* e) {
                     scratch_name(e->reg));
         } break;
         case EXPR_INIT_LIST:
+            printf("FIXME: codegen EXPR_INIT_LIST unimplemented.\n");
             break;
         case EXPR_ARG:
             expr_codegen(e->left);
             e->reg = e->left->reg;
-            //printf("FIXME: expr_codegen for EXPR_ARG\n");
             break;
         case EXPR_SUBSCRIPT:
+            printf("FIXME: codegen EXPR_INIT_LIST unimplemented.\n");
             break;
     }
 }
@@ -362,7 +392,7 @@ void stmt_codegen(Stmt* s) {
             // condition expr
             if (s->expr) {
                 expr_codegen(s->expr);
-                fprintf(output_file, "CMP %s, $0\n", scratch_name(s->expr->reg));
+                fprintf(output_file, "CMP $0, %s\n", scratch_name(s->expr->reg));
                 scratch_free(s->expr->reg);
                 fprintf(output_file, "JE %s\n", label_name(done_label));
             }
@@ -452,18 +482,6 @@ void stmt_codegen(Stmt* s) {
                         break;
                 }
 
-                // -1 because first argument will be format string
-                //if (j < X64_NUM_ARGUMENT_REGISTERS-1) {
-                //    fprintf(output_file,
-                //            "MOVQ %s, %s\n",
-                //            scratch_name(current_arg->left->reg),
-                //            argument_registers[j+1]);
-                //} else {
-                //    fprintf(output_file,
-                //            "PUSHQ %s\n",
-                //            scratch_name(current_arg->left->reg));
-                //}
-
                 fprintf(output_file,
                         "PUSHQ %s\n",
                         scratch_name(current_arg->left->reg));
@@ -473,7 +491,8 @@ void stmt_codegen(Stmt* s) {
             }
 
             for (int i = 0;
-                 i < (X64_NUM_ARGUMENT_REGISTERS-1 < arg_count ? X64_NUM_ARGUMENT_REGISTERS-1 : arg_count);
+                 i < (X64_NUM_ARGUMENT_REGISTERS-1 < arg_count
+                      ? X64_NUM_ARGUMENT_REGISTERS-1 : arg_count);
                  i++
             ) {
                 fprintf(output_file,
@@ -586,6 +605,7 @@ void decl_codegen(Decl* d) {
             break;
         case TYPE_ARRAY:
             // FIXME: incomplete
+            fprintf(output_file, "FIXME: codegen for TYPE_ARRAY unimplemented.\n");
             break;
         case TYPE_STRING:
             if (d->symbol->kind == SYMBOL_GLOBAL) {
@@ -605,6 +625,25 @@ void decl_codegen(Decl* d) {
         case TYPE_BOOLEAN:
         case TYPE_CHAR:
         case TYPE_INTEGER:
+            // if no initializer value was given, create one with a value of zero
+            if (!d->value) {
+                switch (d->type->kind) {
+                    case TYPE_BOOLEAN:
+                        d->value = expr_create_boolean_literal(0);
+                        break;
+                    case TYPE_CHAR:
+                        d->value = expr_create_char_literal(0);
+                        break;
+                    case TYPE_INTEGER:
+                        d->value = expr_create_integer_literal(0);
+                        break;
+                    default:
+                        // unreachable due to the outer switch statement
+                        break;
+                }
+                d->value = expr_create_integer_literal(0);
+            }
+
             if (d->symbol->kind == SYMBOL_GLOBAL) {
                 fprintf(output_file, ".data\n");
                 fprintf(output_file, "%s:\n", symbol_codegen(d->symbol));

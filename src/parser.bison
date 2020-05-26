@@ -110,7 +110,7 @@ program : decl_list
         ;
 
 decl : ident TOKEN_COLON type TOKEN_SEMI
-       { $$ = decl_create($1, $3,0, 0, 0); }
+       { $$ = decl_create($1, $3, 0, 0, 0); }
      | ident TOKEN_COLON type TOKEN_ASSIGN expr TOKEN_SEMI
        { $$ = decl_create($1, $3, $5, 0, 0); }
      | ident TOKEN_COLON type TOKEN_ASSIGN init_list TOKEN_SEMI

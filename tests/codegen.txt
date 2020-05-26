@@ -7,16 +7,16 @@ func_many_args: function integer (
     a: integer, b: integer, c: integer, d: integer, e: integer,
     f: integer, g: integer, h: integer, i: integer, j: integer,
 ) = {
-    print "a is: " , a, "\n";
-    print "b is: " , b, "\n";
-    print "c is: " , c, "\n";
-    print "d is: " , d, "\n";
-    print "e is: " , e, "\n";
-    print "f is: " , f, "\n";
-    print "g is: " , g, "\n";
-    print "h is: " , h, "\n";
-    print "i is: " , i, "\n";
-    print "j is: " , j, "\n";
+    //print "a is: " , a, "\n";
+    //print "b is: " , b, "\n";
+    //print "c is: " , c, "\n";
+    //print "d is: " , d, "\n";
+    //print "e is: " , e, "\n";
+    //print "f is: " , f, "\n";
+    //print "g is: " , g, "\n";
+    //print "h is: " , h, "\n";
+    //print "i is: " , i, "\n";
+    //print "j is: " , j, "\n";
 
     x: integer = a + b + c + d + e + f + g + h + i + j;
     print "x is ", x, "\n";
@@ -64,5 +64,10 @@ main: function integer () = {
         print "if is ", false, "\n";
     }
 
-    // testing
+    // testing for loops
+    print "testing loop\n";
+    i: integer;
+    for (i = 0; i < 10; i = i + 1) {
+        print "\t i is: ", i, "\n";
+    }
 }
