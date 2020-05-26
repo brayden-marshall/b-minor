@@ -19,7 +19,8 @@ extern struct hash_table* scope_stack[SCOPE_STACK_MAX];
 
 // stores the current number of variables declared in each scope
 // this is used to set the 'which' property on symbols for code generation
-int scope_stack_var_counts[SCOPE_STACK_MAX];
+int scope_stack_local_var_counts[SCOPE_STACK_MAX];
+int scope_stack_parameter_counts[SCOPE_STACK_MAX];
 
 void scope_enter() {
     //printf("entering scope...\n");
@@ -36,7 +37,7 @@ void scope_enter() {
     if (!scope_stack[scope_stack_top]) {
         scope_stack[scope_stack_top] = hash_table_create(0, 0);
     }
-    scope_stack_var_counts[scope_stack_top] = 0;
+    scope_stack_local_var_counts[scope_stack_top] = 0;
 }
 
 void scope_exit() {
@@ -58,8 +59,9 @@ void scope_bind(const char* name, Symbol* symbol) {
     assert(scope_stack_top >= 0 && scope_stack_top < SCOPE_STACK_MAX);
 
     if (symbol->kind == SYMBOL_LOCAL) {
-        symbol->which = scope_stack_var_counts[scope_stack_top];
-        scope_stack_var_counts[scope_stack_top]++;
+        symbol->which = scope_stack_local_var_counts[scope_stack_top]
+                        + scope_stack_parameter_counts[scope_stack_top];
+        scope_stack_local_var_counts[scope_stack_top]++;
     }
 
     hash_table_insert(scope_stack[scope_stack_top], name, symbol);
@@ -106,7 +108,7 @@ void decl_resolve(Decl* d) {
 
         param_list_resolve(d->type->params);
         stmt_resolve(d->code->body);
-        d->local_var_count = scope_stack_var_counts[scope_stack_top];
+        d->local_var_count = scope_stack_local_var_counts[scope_stack_top];
 
         scope_exit();
 
@@ -161,6 +163,9 @@ void param_list_resolve(ParamList* p) {
     for (int i = 0; current != NULL; i++, current = current->next) {
         current->symbol = symbol_create(SYMBOL_PARAM, current->type, current->name);
         current->symbol->which = i;
+        if (i < X64_NUM_ARGUMENT_REGISTERS) {
+            scope_stack_parameter_counts[scope_stack_top]++;
+        }
         scope_bind(current->name, current->symbol);
     }
 }

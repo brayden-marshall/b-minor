@@ -7,8 +7,20 @@ func_many_args: function integer (
     a: integer, b: integer, c: integer, d: integer, e: integer,
     f: integer, g: integer, h: integer, i: integer, j: integer,
 ) = {
-    k: integer = j + 1;
-    return a + b + c + d + e + f + g + h + i + j + k;
+    print "a is: " , a, "\n";
+    print "b is: " , b, "\n";
+    print "c is: " , c, "\n";
+    print "d is: " , d, "\n";
+    print "e is: " , e, "\n";
+    print "f is: " , f, "\n";
+    print "g is: " , g, "\n";
+    print "h is: " , h, "\n";
+    print "i is: " , i, "\n";
+    print "j is: " , j, "\n";
+
+    x: integer = a + b + c + d + e + f + g + h + i + j;
+    print "x is ", x, "\n";
+    return x;
 }
 
 main: function integer () = {
@@ -31,16 +43,26 @@ main: function integer () = {
 
     // test function call
     function_call: integer = func_many_args(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+    print "function_call is ", function_call, "\n";
 
     // print statement
-    print false, "\n";
+    print false, " hello world\n";
 
-    print "Hello\n";
+    print 'c', "\n";
+
+    print 100*1, " ", true, "\n";
 
     // testing if/else
-    //if (false) {
-    //    return 10;
-    //} else {
-    //    return local_integer;
-    //}
+    if (true) {
+        print "if is ", true, "\n";
+        if (false) {
+            print "inner if is ", true, "\n";
+        } else {
+            print "inner if is ", false, "\n";
+        }
+    } else {
+        print "if is ", false, "\n";
+    }
+
+    // testing
 }

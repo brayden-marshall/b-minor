@@ -87,7 +87,7 @@ void decl_typecheck(Decl* d) {
         if (!type_equals(t, d->symbol->type)) {
             error_print("Type error: cannot assign to a variable of a different type.\n\tGot declaration (%s: %T = %E), which is of type (%T) = (%T).\n", d->name, d->symbol->type, d->value, d->symbol->type, t);
         }
-        type_delete(t);
+        //type_delete(t);
     }
 
     if (d->code) {
@@ -107,7 +107,7 @@ void stmt_typecheck(Stmt* s) {
             break;
         case STMT_EXPR:
             t = expr_typecheck(s->expr);
-            type_delete(t);
+            //type_delete(t);
             break;
         case STMT_IF_ELSE:
             t = expr_typecheck(s->expr);
@@ -115,7 +115,7 @@ void stmt_typecheck(Stmt* s) {
                 error_print("Type error: if statement condition must be a boolean.\n\tGot expression (%E), which is of type (%T).\n", s->expr, t);
             }
 
-            type_delete(t);
+            //type_delete(t);
             stmt_typecheck(s->body);
             stmt_typecheck(s->else_body);
             break;
@@ -126,15 +126,14 @@ void stmt_typecheck(Stmt* s) {
                 error_print("Type error: for loop condition must be a boolean.\n\tGot expression (%E), which is of type (%T)\n", s->expr, t);
             }
 
-            type_delete(t);
+            //type_delete(t);
             stmt_typecheck(s->body);
             break;
         case STMT_PRINT:
-            type_delete(expr_typecheck(s->expr));
-
+            expr_typecheck(s->expr);
             break;
         case STMT_RETURN:
-            type_delete(expr_typecheck(s->expr));
+            expr_typecheck(s->expr);
             break;
         case STMT_BLOCK:
             stmt_typecheck(s->body);
@@ -269,9 +268,10 @@ Type* expr_typecheck(Expr* e) {
             printf("Compiler bug: enum case not handled.\n");
             assert(0);
     }
+    e->type = result;
 
-    type_delete(lt);
-    type_delete(rt);
+    //type_delete(lt);
+    //type_delete(rt);
 
     assert(result != NULL);
     return result;

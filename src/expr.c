@@ -13,6 +13,7 @@ Expr* expr_create(Expr_t kind, Expr* left, Expr* right) {
     e->string_literal = NULL;
     e->symbol = NULL;
     e->reg = -1;
+    e->type = NULL;
     return e;
 }
 

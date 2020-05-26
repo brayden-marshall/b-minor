@@ -56,6 +56,7 @@ struct Expr {
     const char* string_literal;
 
     Symbol* symbol;
+    Type* type;
     int reg;
 };
 

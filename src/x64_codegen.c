@@ -73,7 +73,7 @@ const char* label_name(int label) {
 
 const char* symbol_codegen(Symbol* s) {
     char* name = malloc(sizeof(char) * 256);
-    if (name == 0) {
+    if (name == NULL) {
         printf("Error: ran out of memory.");
         assert(0);
     }
@@ -86,9 +86,9 @@ const char* symbol_codegen(Symbol* s) {
         sprintf(name, "-%d(%%rbp)", offset);
     } else if (s->kind == SYMBOL_PARAM) {
         if (s->which < X64_NUM_ARGUMENT_REGISTERS) {
-            sprintf(name, "%s", argument_registers[s->which]);
+            sprintf(name, "-%d(%%rbp)", (s->which+1)*8);
         } else {
-            int offset = 16 + ((s->which - X64_NUM_ARGUMENT_REGISTERS) * 8);
+            int offset = 32 + ((s->which - X64_NUM_ARGUMENT_REGISTERS) * 8);
             sprintf(name, "%d(%%rbp)", offset);
         }
     }
@@ -156,13 +156,13 @@ void expr_codegen(Expr* e) {
             expr_codegen(e->right);
 
             fprintf(output_file, "SUBQ %s, %s\n",
-                scratch_name(e->left->reg),
-                scratch_name(e->right->reg));
+                scratch_name(e->right->reg),
+                scratch_name(e->left->reg));
 
-            e->reg = e->right->reg;
-            scratch_free(e->left->reg);
+            e->reg = e->left->reg;
+            scratch_free(e->right->reg);
             break;
-        case EXPR_MUL:
+        case EXPR_MUL: {
             // MOVQ left, %rax
             // IMULQ right
             // MOVQ %rax, right
@@ -175,7 +175,7 @@ void expr_codegen(Expr* e) {
 
             e->reg = e->right->reg;
             scratch_free(e->left->reg);
-            break;
+        } break;
         case EXPR_DIV:
             // MOVQ right, %rax
             // CQO
@@ -194,7 +194,7 @@ void expr_codegen(Expr* e) {
             break;
         case EXPR_EXPONENT:
             break;
-        case EXPR_MODULO:
+        case EXPR_MODULO: {
             // MOVQ right, %rax
             // CQO
             // IDIVQ left
@@ -209,7 +209,7 @@ void expr_codegen(Expr* e) {
 
             e->reg = e->right->reg;
             scratch_free(e->left->reg);
-            break;
+        } break;
         case EXPR_NEGATE:
             break;
 
@@ -253,31 +253,33 @@ void expr_codegen(Expr* e) {
             // load the arguments into registers/onto stack
             {
                 Expr* current_arg = e->right;
-                int i = 0;
+                int arg_count = 0;
                 // this puts a practical limit of 2048 for number of function
                 // parameters. big whoop
                 Expr* arg_stack[2048];
                 for (; current_arg != NULL;
-                    i++, current_arg = current_arg->right
+                    arg_count++, current_arg = current_arg->right
                 ) {
-                    arg_stack[i] = current_arg;
+                    arg_stack[arg_count] = current_arg;
                 }
 
-                for (int j = i-1; j >= 0; j--) {
+                for (int j = arg_count-1; j >= 0; j--) {
                     current_arg = arg_stack[j];
                     expr_codegen(current_arg);
                     //printf("current_arg->reg is %d\n", current_arg->reg);
-                    if (j < X64_NUM_ARGUMENT_REGISTERS) {
-                        fprintf(output_file,
-                                "MOVQ %s, %s\n",
-                                scratch_name(current_arg->reg),
-                                argument_registers[j]);
-                    } else {
-                        fprintf(output_file,
-                                "PUSHQ %s\n",
-                                scratch_name(current_arg->reg));
-                    }
+                    fprintf(output_file,
+                            "PUSHQ %s\n",
+                            scratch_name(current_arg->reg));
                     scratch_free(current_arg->reg);
+                }
+
+                for (int i = 0;
+                     i < (X64_NUM_ARGUMENT_REGISTERS < arg_count ? X64_NUM_ARGUMENT_REGISTERS : arg_count);
+                     i++
+                ) {
+                    fprintf(output_file,
+                            "POPQ %s\n",
+                            argument_registers[i]);
                 }
             }
             // zero floating point args
@@ -332,7 +334,7 @@ void stmt_codegen(Stmt* s) {
 
             // condition expr
             expr_codegen(s->expr);
-            fprintf(output_file, "CMP %s, $0\n", scratch_name(s->expr->reg));
+            fprintf(output_file, "CMP $0, %s\n", scratch_name(s->expr->reg));
             scratch_free(s->expr->reg);
             fprintf(output_file, "JE %s\n", label_name(else_label));
 
@@ -378,13 +380,43 @@ void stmt_codegen(Stmt* s) {
             fprintf(output_file, "%s:\n", label_name(done_label));
         } break;
         case STMT_PRINT: {
-
+            
             Expr* current_arg = s->expr;
+            char format_string[4096];
+            format_string[0] = '\0';
+            int arg_count = 0;
+            // FIXME: again. practical limit of 2048 on number of args
+            Expr* arg_stack[2048];
             while (current_arg != NULL) {
-                fprintf(output_file, "PUSHQ %%rdx\n");
+                arg_stack[arg_count] = current_arg;
+                const char* format_string_append = NULL;
+                switch (current_arg->left->type->kind) {
+                    case TYPE_CHAR:
+                        format_string_append = "%c";
+                        break;
+                    case TYPE_INTEGER:
+                        format_string_append = "%d";
+                        break;
+                    case TYPE_BOOLEAN:
+                    case TYPE_STRING:
+                    case TYPE_ARRAY:
+                    case TYPE_FUNCTION:
+                    default:
+                        format_string_append = "%s";
+                        break;
+                }
+
+                strcat(format_string, format_string_append);
+
+                current_arg = current_arg->right;
+                arg_count++;
+            }
+
+            for (int i = arg_count-1; i >= 0; i--) {
+                current_arg = arg_stack[i];
                 expr_codegen(current_arg->left);
-                switch (current_arg->left->kind) {
-                    case EXPR_BOOLEAN_LITERAL: {
+                switch (current_arg->left->type->kind) {
+                    case TYPE_BOOLEAN: {
                         int else_label = label_create();
                         int end_label = label_create();
                         fprintf(output_file, "CMP $0, %s\n",
@@ -392,47 +424,82 @@ void stmt_codegen(Stmt* s) {
                         fprintf(output_file, "JE %s\n",
                                 label_name(else_label));
 
-                        fprintf(output_file, "LEAQ .__STR_TRUE(%%rip), %%rsi\n");
-                        fprintf(output_file, "MOVQ $4, %%rdx\n");
+                        fprintf(output_file, "LEAQ .__STR_TRUE(%%rip), %s\n",
+                                scratch_name(current_arg->left->reg));
                         fprintf(output_file, "JMP %s\n", label_name(end_label));
 
                         fprintf(output_file, "%s:\n", label_name(else_label));
-                        fprintf(output_file, "LEAQ .__STR_FALSE(%%rip), %%rsi\n");
-                        fprintf(output_file, "MOVQ $5, %%rdx\n");
+                        fprintf(output_file, "LEAQ .__STR_FALSE(%%rip), %s\n",
+                                scratch_name(current_arg->left->reg));
 
                         fprintf(output_file, "%s:\n", label_name(end_label));
                     } break;
-                    case EXPR_CHAR_LITERAL: {
-                    } break;
-                    case EXPR_INTEGER_LITERAL: {
-                    } break;
-                    case EXPR_STRING_LITERAL: {
-                        fprintf(output_file, "MOVQ %s, %%rsi\n",
+                    case TYPE_CHAR:
+                        break;
+                    case TYPE_INTEGER:
+                        break;
+                    case TYPE_STRING:
+                        break;
+                    case TYPE_ARRAY:
+                        fprintf(output_file, "LEAQ .__STR_ARRAY(%%rip), %s\n",
                                 scratch_name(current_arg->left->reg));
-                        fprintf(output_file, "MOVQ $%lu, %%rdx\n",
-                                strlen(current_arg->left->string_literal));
-                    } break;
+                        break;
+                    case TYPE_FUNCTION:
+                        fprintf(output_file, "LEAQ .__STR_FUNCTION(%%rip), %s\n",
+                                scratch_name(current_arg->left->reg));
+                        break;
                     default:
-                        printf("FIXME: print statement with non literal.\n");
                         break;
                 }
 
-                fprintf(output_file, "PUSHQ %%rax\n");
-                fprintf(output_file, "PUSHQ %%rbx\n");
+                // -1 because first argument will be format string
+                //if (j < X64_NUM_ARGUMENT_REGISTERS-1) {
+                //    fprintf(output_file,
+                //            "MOVQ %s, %s\n",
+                //            scratch_name(current_arg->left->reg),
+                //            argument_registers[j+1]);
+                //} else {
+                //    fprintf(output_file,
+                //            "PUSHQ %s\n",
+                //            scratch_name(current_arg->left->reg));
+                //}
 
-                // move 'write' syscall number (1) into %rax
-                fprintf(output_file, "MOVQ $1, %%rax\n");
-                // move stdout file descriptor into param 1 register
-                fprintf(output_file, "MOVQ $1, %%rbx\n");
-                fprintf(output_file, "syscall\n");
-
-                fprintf(output_file, "POPQ %%rbx\n");
-                fprintf(output_file, "POPQ %%rax\n");
-                fprintf(output_file, "POPQ %%rdx\n");
+                fprintf(output_file,
+                        "PUSHQ %s\n",
+                        scratch_name(current_arg->left->reg));
 
                 scratch_free(current_arg->left->reg);
                 current_arg = current_arg->right;
             }
+
+            for (int i = 0;
+                 i < (X64_NUM_ARGUMENT_REGISTERS-1 < arg_count ? X64_NUM_ARGUMENT_REGISTERS-1 : arg_count);
+                 i++
+            ) {
+                fprintf(output_file,
+                        "POPQ %s\n",
+                        argument_registers[i+1]);
+            }
+
+            fprintf(output_file, ".data\n");
+            int format_string_label = label_create();
+            fprintf(output_file, "%s:\n", label_name(format_string_label));
+            fprintf(output_file, "\t.string \"%s\"\n", format_string);
+            fprintf(output_file, ".text\n");
+
+            fprintf(output_file, "LEAQ %s(%%rip), %s\n",
+                    label_name(format_string_label), argument_registers[0]);
+
+            fprintf(output_file, "XOR %%rax, %%rax\n");
+
+            // save the caller-saved registers
+            fprintf(output_file, "PUSHQ %%r10\n");
+            fprintf(output_file, "PUSHQ %%r11\n");
+
+            fprintf(output_file, "CALL printf@PLT\n");
+
+            fprintf(output_file, "POPQ %%r11\n");
+            fprintf(output_file, "POPQ %%r10\n");
         } break;
         case STMT_RETURN:
             expr_codegen(s->expr);
@@ -454,7 +521,6 @@ void decl_codegen(Decl* d) {
 
     switch (d->type->kind) {
         case TYPE_FUNCTION:
-            // FIXME: incomplete
             // directives and label
             fprintf(output_file, ".text\n");
             fprintf(output_file, ".global %s\n", d->name);
@@ -470,12 +536,12 @@ void decl_codegen(Decl* d) {
             // save arguments
             {
                 ParamList* current = d->type->params;
-                for (int i = 0; current != NULL;
+                for (int i = 0; i < X64_NUM_ARGUMENT_REGISTERS && current != NULL;
                     i++, current = current->next
                 ) {
                     fprintf(output_file,
                             "PUSHQ %s\n",
-                            symbol_codegen(current->symbol));
+                            argument_registers[i]);
                 }
             }
 
@@ -575,6 +641,10 @@ FILE* codegen(Decl* decl, const char* output_filename) {
     fprintf(output_file, "\t.string \"true\"\n");
     fprintf(output_file, ".__STR_FALSE:\n");
     fprintf(output_file, "\t.string \"false\"\n");
+    fprintf(output_file, ".__STR_ARRAY:\n");
+    fprintf(output_file, "\t.string \"(T_ARRAY)\"\n");
+    fprintf(output_file, ".__STR_FUNCTION:\n");
+    fprintf(output_file, "\t.string \"(T_FUNCTION)\"\n");
     fprintf(output_file, ".text\n");
 
     decl_codegen(decl);
