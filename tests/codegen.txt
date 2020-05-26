@@ -24,16 +24,50 @@ func_many_args: function integer (
 }
 
 main: function integer () = {
+    // test comparison operators
+    print "100 == 100? ", 100 == 100, " \n";
+    print "100 == 99? ", 100 == 99, " \n\n";
+
+    print "100 != 100? ", 100 != 100, " \n";
+    print "100 != 99? ", 100 != 99, " \n\n";
+
+    print "5 > 10? ", 5 > 10, " \n";
+    print "10 > 5? ", 10 > 5, " \n\n";
+
+    print "5 >= 5? ", 5 >= 5, " \n";
+    print "4 >= 5? ", 4 >= 5, " \n\n";
+
+    print "5 < 10? ", 5 < 10, " \n";
+    print "10 < 5? ", 10 < 5, " \n\n";
+
+    print "5 <= 5? ", 5 <= 5, " \n";
+    print "5 <= 6? ", 5 <= 6, " \n\n";
+
+    // test logical operators
+    print "!true is: ", !true, "\n";
+    print "!false is: ", !false, "\n";
+    print "!!true is: ", !!true, "\n\n";
+
+    // test aritmetic operators
+    print "-10 == ", -10, "\n";
+    print "-(-10) == ", -(-10), "\n\n";
+
+    //add: integer = 1 + 1;
+    //subtract: integer = 10 - add;
+    //multiply: integer = subtract * add;
+    //divide: integer = multiply / multiply;
+    //modulo: integer = 10 % multiply;
+
+    // test local variable declarations
     local_integer: integer = 54321;
     local_boolean: boolean = false;
     local_character: char = 'Y';
-    //local_string: string = "!dlroW, olleH";
+    local_string: string = "dlroW, olleH";
 
-    add: integer = 1 + 1;
-    subtract: integer = 10 - add;
-    multiply: integer = subtract * add;
-    divide: integer = multiply / multiply;
-    modulo: integer = 10 % multiply;
+    print "local_integer. should be: 54321, is: ", local_integer, "\n";
+    print "local_boolean. should be: false, is: ", local_boolean, "\n";
+    print "local_character. should be: 'Y', is: '", local_character, "'\n";
+    print "local_string. should be: 'dlroW, olleH', is: '", local_string, "'\n\n";
 
     // testing assignment
     local_integer = 1;
@@ -66,8 +100,8 @@ main: function integer () = {
 
     // testing for loops
     print "testing loop\n";
-    i: integer;
-    for (i = 0; i < 10; i = i + 1) {
+    i: integer = 0;
+    for (; i < 10; i = i + 1) {
         print "\t i is: ", i, "\n";
     }
 }

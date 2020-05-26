@@ -209,7 +209,11 @@ void expr_codegen(Expr* e) {
             scratch_free(e->left->reg);
         } break;
         case EXPR_NEGATE:
-            printf("FIXME: codegen EXPR_NEGATE unimplemented.\n");
+            expr_codegen(e->left);
+
+            fprintf(output_file, "NEG %s\n", scratch_name(e->left->reg));
+
+            e->reg = e->left->reg;
             break;
 
         // logical operations
@@ -219,24 +223,34 @@ void expr_codegen(Expr* e) {
         case EXPR_LOGICAL_AND:
             printf("FIXME: codegen EXPR_LOGICAL_AND unimplemented.\n");
             break;
-        case EXPR_LOGICAL_NOT:
-            printf("FIXME: codegen EXPR_LOGICAL_NOT unimplemented.\n");
-            break;
+        case EXPR_LOGICAL_NOT: {
+            expr_codegen(e->left);
+
+            int top_label = label_create();
+            int end_label = label_create();
+
+            fprintf(output_file, "CMP $0, %s\n", scratch_name(e->left->reg));
+            fprintf(output_file, "JE %s\n", label_name(top_label));
+
+            fprintf(output_file, "XOR %s, %s\n",
+                    scratch_name(e->left->reg),
+                    scratch_name(e->left->reg));
+            fprintf(output_file, "JMP %s\n", label_name(end_label));
+            fprintf(output_file, "%s:\n", label_name(top_label));
+
+            fprintf(output_file, "MOVQ $1, %s\n", scratch_name(e->left->reg));
+            fprintf(output_file, "%s:\n", label_name(end_label));
+
+            e->reg = e->left->reg;
+        } break;
 
         // conditionals
         case EXPR_CMP_EQUAL:
-            printf("FIXME: codegen EXPR_CMP_EQUAL unimplemented.\n");
-            break;
         case EXPR_CMP_NOT_EQUAL:
-            printf("FIXME: codegen EXPR_CMP_NOT_EQUAL unimplemented.\n");
-            break;
         case EXPR_CMP_GT:
-            printf("FIXME: codegen EXP_CMP_GT unimplemented.\n");
-            break;
         case EXPR_CMP_GT_EQUAL:
-            printf("FIXME: codegen EXPR_CMP_GT_EQUAL unimplemented.\n");
-            break;
         case EXPR_CMP_LT:
+        case EXPR_CMP_LT_EQUAL: {
             expr_codegen(e->left);
             expr_codegen(e->right);
 
@@ -247,7 +261,29 @@ void expr_codegen(Expr* e) {
                     scratch_name(e->right->reg),
                     scratch_name(e->left->reg));
 
-            fprintf(output_file, "JL %s\n", label_name(top_label));
+            switch (e->kind) {
+                case EXPR_CMP_EQUAL:
+                    fprintf(output_file, "JE %s\n", label_name(top_label));
+                    break;
+                case EXPR_CMP_NOT_EQUAL:
+                    fprintf(output_file, "JNE %s\n", label_name(top_label));
+                    break;
+                case EXPR_CMP_GT:
+                    fprintf(output_file, "JG %s\n", label_name(top_label));
+                    break;
+                case EXPR_CMP_GT_EQUAL:
+                    fprintf(output_file, "JGE %s\n", label_name(top_label));
+                    break;
+                case EXPR_CMP_LT:
+                    fprintf(output_file, "JL %s\n", label_name(top_label));
+                    break;
+                case EXPR_CMP_LT_EQUAL:
+                    fprintf(output_file, "JLE %s\n", label_name(top_label));
+                    break;
+                default:
+                    // unreachable because of outer switch
+                    break;
+            }
             fprintf(output_file, "MOVQ $0, %s\n", scratch_name(e->right->reg));
             fprintf(output_file, "JMP %s\n", label_name(end_label));
             fprintf(output_file, "%s:\n", label_name(top_label));
@@ -257,10 +293,7 @@ void expr_codegen(Expr* e) {
 
             scratch_free(e->left->reg);
             e->reg = e->right->reg;
-            break;
-        case EXPR_CMP_LT_EQUAL:
-            printf("FIXME: codegen EXPR_CMP_LT_EQUAL unimplemented.\n");
-            break;
+        } break;
 
         // assignments
         case EXPR_ASSIGN:
@@ -342,7 +375,7 @@ void expr_codegen(Expr* e) {
             e->reg = e->left->reg;
             break;
         case EXPR_SUBSCRIPT:
-            printf("FIXME: codegen EXPR_INIT_LIST unimplemented.\n");
+            printf("FIXME: codegen EXPR_SUBSCRIPT unimplemented.\n");
             break;
     }
 }
@@ -618,8 +651,22 @@ void decl_codegen(Decl* d) {
                 fprintf(output_file, "\t.string \"%s\"\n", init_value);
                 fprintf(output_file, ".text\n\n");
             } else {
-                // FIXME: local string declaration
-                printf("FIXME: local string declaration.\n");
+                int reg = scratch_alloc();
+                int label = label_create();
+
+                fprintf(output_file, ".data\n");
+                fprintf(output_file, "%s:\n", label_name(label));
+                const char* init_value = "";
+                if (d->value) {
+                    init_value = d->value->string_literal;
+                }
+                fprintf(output_file, "\t.string \"%s\"\n", init_value);
+
+                fprintf(output_file, ".text\n\n");
+                fprintf(output_file, "LEAQ %s(%%rip), %s\n",
+                        label_name(label), scratch_name(reg));
+                fprintf(output_file, "MOVQ %s, %s\n",
+                        scratch_name(reg), symbol_codegen(d->symbol));
             }
             break;
         case TYPE_BOOLEAN:
