@@ -7,17 +7,6 @@ func_many_args: function integer (
     a: integer, b: integer, c: integer, d: integer, e: integer,
     f: integer, g: integer, h: integer, i: integer, j: integer,
 ) = {
-    //print "a is: " , a, "\n";
-    //print "b is: " , b, "\n";
-    //print "c is: " , c, "\n";
-    //print "d is: " , d, "\n";
-    //print "e is: " , e, "\n";
-    //print "f is: " , f, "\n";
-    //print "g is: " , g, "\n";
-    //print "h is: " , h, "\n";
-    //print "i is: " , i, "\n";
-    //print "j is: " , j, "\n";
-
     x: integer = a + b + c + d + e + f + g + h + i + j;
     print "x is ", x, "\n";
     return x;
@@ -48,15 +37,25 @@ main: function integer () = {
     print "!false is: ", !false, "\n";
     print "!!true is: ", !!true, "\n\n";
 
-    // test aritmetic operators
+    print "false || false is: ", false || false, "\n";
+    print "false || true is: ", false || true, "\n";
+    print "true || false is: ", true || false, "\n";
+    print "true || true is: ", true || true, "\n\n";
+
+    print "false && false is: ", false && false, "\n";
+    print "false && true is: ", false && true, "\n";
+    print "true && false is: ", true && false, "\n";
+    print "true && true is: ", true && true, "\n\n";
+
+    // test arithmetic operators
     print "-10 == ", -10, "\n";
     print "-(-10) == ", -(-10), "\n\n";
 
-    //add: integer = 1 + 1;
-    //subtract: integer = 10 - add;
-    //multiply: integer = subtract * add;
-    //divide: integer = multiply / multiply;
-    //modulo: integer = 10 % multiply;
+    print "testing 1 + 1, should be 2, is: ", 1 + 1, "\n";
+    print "testing 100 - 70, should be 30, is: ", 100 - 70, "\n";
+    print "testing 7 * 42, should be 294, is: ", 294, "\n";
+    print "testing 8 / 3, should be 2, is: ", 8 / 3, "\n";
+    print "testing -21 % 6, should be -3, is: ", -21 % 6, "\n\n";
 
     // test local variable declarations
     local_integer: integer = 54321;
@@ -72,12 +71,24 @@ main: function integer () = {
     // testing assignment
     local_integer = 1;
     local_boolean = true;
-    local_character = '!';
-    //local_string = "Assignment";
+    local_character = 'H';
+    local_string = "Assignment";
+
+    print "local_integer: should now be: 1, is: ", local_integer, "\n";
+    print "local_boolean: should now be: true, is: ", local_boolean, "\n";
+    print "local_character: should now be: 'H', is: '", local_character, "'\n";
+    print "local_string: should now be: 'Assignment', is: '", local_string, "'\n\n";
+
+    // testing increment and decrement operators
+    local_integer++;
+    print "local_integer++ should be 3, is: ", local_integer++, "\n";
+
+    local_integer--;
+    print "local_integer-- should be 1, is: ", local_integer--, "\n\n";
 
     // test function call
     function_call: integer = func_many_args(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
-    print "function_call is ", function_call, "\n";
+    print "function_call should be: 55, is ", function_call, "\n";
 
     // print statement
     print false, " hello world\n";

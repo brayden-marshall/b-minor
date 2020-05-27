@@ -133,10 +133,8 @@ void expr_codegen(Expr* e) {
                 e->integer_value,
                 scratch_name(e->reg));
             break;
-        
         // arithmetic expressions
         case EXPR_ADD:
-            // ADDQ left, right
             expr_codegen(e->left);
             expr_codegen(e->right);
 
@@ -148,7 +146,6 @@ void expr_codegen(Expr* e) {
             scratch_free(e->left->reg);
             break;
         case EXPR_SUB:
-            // SUBQ left, right
             expr_codegen(e->left);
             expr_codegen(e->right);
 
@@ -160,9 +157,6 @@ void expr_codegen(Expr* e) {
             scratch_free(e->right->reg);
             break;
         case EXPR_MUL: {
-            // MOVQ left, %rax
-            // IMULQ right
-            // MOVQ %rax, right
             expr_codegen(e->left);
             expr_codegen(e->right);
 
@@ -174,39 +168,31 @@ void expr_codegen(Expr* e) {
             scratch_free(e->left->reg);
         } break;
         case EXPR_DIV:
-            // MOVQ right, %rax
-            // CQO
-            // IDIVQ left
-            // MOVQ %rax, right
             expr_codegen(e->left);
             expr_codegen(e->right);
 
-            fprintf(output_file, "MOVQ %s, %%rax\n", scratch_name(e->right->reg));
+            fprintf(output_file, "MOVQ %s, %%rax\n", scratch_name(e->left->reg));
             fprintf(output_file, "CQO\n");
-            fprintf(output_file, "IDIVQ %s\n", scratch_name(e->left->reg));
-            fprintf(output_file, "MOVQ %%rax, %s\n", scratch_name(e->right->reg));
+            fprintf(output_file, "IDIVQ %s\n", scratch_name(e->right->reg));
+            fprintf(output_file, "MOVQ %%rax, %s\n", scratch_name(e->left->reg));
 
-            e->reg = e->right->reg;
-            scratch_free(e->left->reg);
+            e->reg = e->left->reg;
+            scratch_free(e->right->reg);
             break;
         case EXPR_EXPONENT:
             printf("FIXME: codegen EXPR_EXPONENT unimplemented.\n");
             break;
         case EXPR_MODULO: {
-            // MOVQ right, %rax
-            // CQO
-            // IDIVQ left
-            // MOVQ %rdx, right
             expr_codegen(e->left);
             expr_codegen(e->right);
 
-            fprintf(output_file, "MOVQ %s, %%rax\n", scratch_name(e->right->reg));
+            fprintf(output_file, "MOVQ %s, %%rax\n", scratch_name(e->left->reg));
             fprintf(output_file, "CQO\n");
-            fprintf(output_file, "IDIVQ %s\n", scratch_name(e->left->reg));
-            fprintf(output_file, "MOVQ %%rdx, %s\n", scratch_name(e->right->reg));
+            fprintf(output_file, "IDIVQ %s\n", scratch_name(e->right->reg));
+            fprintf(output_file, "MOVQ %%rdx, %s\n", scratch_name(e->left->reg));
 
-            e->reg = e->right->reg;
-            scratch_free(e->left->reg);
+            e->reg = e->left->reg;
+            scratch_free(e->right->reg);
         } break;
         case EXPR_NEGATE:
             expr_codegen(e->left);
@@ -217,12 +203,55 @@ void expr_codegen(Expr* e) {
             break;
 
         // logical operations
-        case EXPR_LOGICAL_OR:
-            printf("FIXME: codegen EXPR_LOGICAL_OR unimplemented.\n");
-            break;
-        case EXPR_LOGICAL_AND:
-            printf("FIXME: codegen EXPR_LOGICAL_AND unimplemented.\n");
-            break;
+        case EXPR_LOGICAL_OR: {
+            // FIXME: probably a very inefficient implementation
+            expr_codegen(e->left);
+            expr_codegen(e->right);
+
+            int label_1 = label_create();
+            int label_2 = label_create();
+            int end_label = label_create();
+
+            fprintf(output_file, "CMP $0, %s\n", scratch_name(e->left->reg));
+            fprintf(output_file, "JE %s\n", label_name(label_1));
+            fprintf(output_file, "MOV $1, %s\n", scratch_name(e->left->reg));
+            fprintf(output_file, "JMP %s\n", label_name(end_label));
+            fprintf(output_file, "%s:\n", label_name(label_1));
+
+            fprintf(output_file, "CMP $0, %s\n", scratch_name(e->right->reg));
+            fprintf(output_file, "JE %s\n", label_name(label_2));
+            fprintf(output_file, "MOV $1, %s\n", scratch_name(e->left->reg));
+            fprintf(output_file, "JMP %s\n", label_name(end_label));
+            fprintf(output_file, "%s:\n", label_name(label_2));
+
+            fprintf(output_file, "MOV $0, %s\n", scratch_name(e->left->reg));
+            fprintf(output_file, "%s:\n", label_name(end_label));
+
+            e->reg = e->left->reg;
+            scratch_free(e->right->reg);
+        } break;
+        case EXPR_LOGICAL_AND: {
+            // FIXME: probably a very inefficient implementation
+            expr_codegen(e->left);
+            expr_codegen(e->right);
+
+            int label = label_create();
+            int end_label = label_create();
+
+            fprintf(output_file, "CMP $0, %s\n", scratch_name(e->left->reg));
+            fprintf(output_file, "JE %s\n", label_name(label));
+            fprintf(output_file, "CMP $0, %s\n", scratch_name(e->right->reg));
+            fprintf(output_file, "JE %s\n", label_name(label));
+            fprintf(output_file, "MOVQ $1, %s\n", scratch_name(e->left->reg));
+            fprintf(output_file, "JMP %s\n", label_name(end_label));
+
+            fprintf(output_file, "%s:\n", label_name(label));
+            fprintf(output_file, "MOVQ $0, %s\n", scratch_name(e->left->reg));
+            fprintf(output_file, "%s:\n", label_name(end_label));
+
+            e->reg = e->left->reg;
+            scratch_free(e->right->reg);
+        } break;
         case EXPR_LOGICAL_NOT: {
             expr_codegen(e->left);
 
@@ -284,6 +313,7 @@ void expr_codegen(Expr* e) {
                     // unreachable because of outer switch
                     break;
             }
+
             fprintf(output_file, "MOVQ $0, %s\n", scratch_name(e->right->reg));
             fprintf(output_file, "JMP %s\n", label_name(end_label));
             fprintf(output_file, "%s:\n", label_name(top_label));
@@ -304,10 +334,20 @@ void expr_codegen(Expr* e) {
             e->reg = e->right->reg;
             break;
         case EXPR_INCREMENT:
-            printf("FIXME: codegen EXPR_INCREMENT unimplemented.\n");
+            expr_codegen(e->left);
+            fprintf(output_file, "INC %s\n", scratch_name(e->left->reg));
+            fprintf(output_file, "MOVQ %s, %s\n",
+                    scratch_name(e->left->reg),
+                    symbol_codegen(e->left->symbol));
+            e->reg = e->left->reg;
             break;
         case EXPR_DECREMENT:
-            printf("FIXME: codegen EXPR_DECREMENT unimplemented.\n");
+            expr_codegen(e->left);
+            fprintf(output_file, "DEC %s\n", scratch_name(e->left->reg));
+            fprintf(output_file, "MOVQ %s, %s\n",
+                    scratch_name(e->left->reg),
+                    symbol_codegen(e->left->symbol));
+            e->reg = e->left->reg;
             break;
 
         // misc.
