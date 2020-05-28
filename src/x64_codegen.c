@@ -79,7 +79,6 @@ const char* symbol_codegen(Symbol* s) {
     }
 
     if (s->kind == SYMBOL_GLOBAL) {
-        name = s->name;
         sprintf(name, "%s(%%rip)", s->name);
     } else if (s->kind == SYMBOL_LOCAL) {
         // (s->which+1) here to convert from zero-based
@@ -102,12 +101,14 @@ void expr_codegen(Expr* e) {
     if (!e) return;
 
     switch (e->kind) {
-        case EXPR_NAME:
+        case EXPR_NAME: {
+            const char* symbol = symbol_codegen(e->symbol);
             e->reg = scratch_alloc();
             fprintf(output_file, "MOVQ %s, %s\n",
-                symbol_codegen(e->symbol),
+                symbol,
                 scratch_name(e->reg));
-            break;
+            free((void*) symbol);
+        } break;
         // literals
         case EXPR_STRING_LITERAL: {
             // .data
@@ -116,15 +117,19 @@ void expr_codegen(Expr* e) {
             // .text
             fprintf(output_file, ".data\n");
 
-            int str_label = label_create();
-            fprintf(output_file, "%s:\n", label_name(str_label));
+            const char* str_label = label_name(label_create());
+
+            fprintf(output_file, "%s:\n", str_label);
+
             fprintf(output_file, "\t.string \"%s\"\n", e->string_literal);
             fprintf(output_file, ".text\n");
 
             e->reg = scratch_alloc();
             fprintf(output_file, "LEAQ %s(%%rip), %s\n",
-                    label_name(str_label),
+                    str_label,
                     scratch_name(e->reg));
+
+            free((void*)str_label);
         } break;
         case EXPR_CHAR_LITERAL:
         case EXPR_INTEGER_LITERAL:
@@ -209,69 +214,79 @@ void expr_codegen(Expr* e) {
             expr_codegen(e->left);
             expr_codegen(e->right);
 
-            int label_1 = label_create();
-            int label_2 = label_create();
-            int end_label = label_create();
+            const char* label_1 = label_name(label_create());
+            const char* label_2 = label_name(label_create());
+            const char* end_label = label_name(label_create());
 
             fprintf(output_file, "CMP $0, %s\n", scratch_name(e->left->reg));
-            fprintf(output_file, "JE %s\n", label_name(label_1));
+            fprintf(output_file, "JE %s\n", label_1);
             fprintf(output_file, "MOV $1, %s\n", scratch_name(e->left->reg));
-            fprintf(output_file, "JMP %s\n", label_name(end_label));
-            fprintf(output_file, "%s:\n", label_name(label_1));
+            fprintf(output_file, "JMP %s\n", end_label);
+            fprintf(output_file, "%s:\n", label_1);
 
             fprintf(output_file, "CMP $0, %s\n", scratch_name(e->right->reg));
-            fprintf(output_file, "JE %s\n", label_name(label_2));
+            fprintf(output_file, "JE %s\n", label_2);
             fprintf(output_file, "MOV $1, %s\n", scratch_name(e->left->reg));
-            fprintf(output_file, "JMP %s\n", label_name(end_label));
-            fprintf(output_file, "%s:\n", label_name(label_2));
+            fprintf(output_file, "JMP %s\n", end_label);
+            fprintf(output_file, "%s:\n", label_2);
 
             fprintf(output_file, "MOV $0, %s\n", scratch_name(e->left->reg));
-            fprintf(output_file, "%s:\n", label_name(end_label));
+            fprintf(output_file, "%s:\n", end_label);
 
             e->reg = e->left->reg;
             scratch_free(e->right->reg);
+
+            free((void*) label_1);
+            free((void*) label_2);
+            free((void*) end_label);
         } break;
         case EXPR_LOGICAL_AND: {
             // FIXME: probably a very inefficient implementation
             expr_codegen(e->left);
             expr_codegen(e->right);
 
-            int label = label_create();
-            int end_label = label_create();
+            const char* label = label_name(label_create());
+            const char* end_label = label_name(label_create());
 
             fprintf(output_file, "CMP $0, %s\n", scratch_name(e->left->reg));
-            fprintf(output_file, "JE %s\n", label_name(label));
+            fprintf(output_file, "JE %s\n", label);
             fprintf(output_file, "CMP $0, %s\n", scratch_name(e->right->reg));
-            fprintf(output_file, "JE %s\n", label_name(label));
+            fprintf(output_file, "JE %s\n", label);
             fprintf(output_file, "MOVQ $1, %s\n", scratch_name(e->left->reg));
-            fprintf(output_file, "JMP %s\n", label_name(end_label));
+            fprintf(output_file, "JMP %s\n", end_label);
 
-            fprintf(output_file, "%s:\n", label_name(label));
+            fprintf(output_file, "%s:\n", label);
             fprintf(output_file, "MOVQ $0, %s\n", scratch_name(e->left->reg));
-            fprintf(output_file, "%s:\n", label_name(end_label));
+            fprintf(output_file, "%s:\n", end_label);
 
             e->reg = e->left->reg;
             scratch_free(e->right->reg);
+
+            free((void*) label);
+            free((void*) end_label);
         } break;
         case EXPR_LOGICAL_NOT: {
             expr_codegen(e->left);
 
-            int top_label = label_create();
-            int end_label = label_create();
+            const char* top_label = label_name(label_create());
+            const char* end_label = label_name(label_create());
 
             fprintf(output_file, "CMP $0, %s\n", scratch_name(e->left->reg));
-            fprintf(output_file, "JE %s\n", label_name(top_label));
+            fprintf(output_file, "JE %s\n", top_label);
 
             fprintf(output_file, "XOR %s, %s\n",
                     scratch_name(e->left->reg),
                     scratch_name(e->left->reg));
-            fprintf(output_file, "JMP %s\n", label_name(end_label));
-            fprintf(output_file, "%s:\n", label_name(top_label));
+            fprintf(output_file, "JMP %s\n", end_label);
+            fprintf(output_file, "%s:\n", top_label);
 
             fprintf(output_file, "MOVQ $1, %s\n", scratch_name(e->left->reg));
-            fprintf(output_file, "%s:\n", label_name(end_label));
+            fprintf(output_file, "%s:\n", end_label);
 
             e->reg = e->left->reg;
+
+            free((void*) top_label);
+            free((void*) end_label);
         } break;
 
         // conditionals
@@ -284,8 +299,8 @@ void expr_codegen(Expr* e) {
             expr_codegen(e->left);
             expr_codegen(e->right);
 
-            int top_label = label_create();
-            int end_label = label_create();
+            const char* top_label = label_name(label_create());
+            const char* end_label = label_name(label_create());
 
             fprintf(output_file, "CMP %s, %s\n",
                     scratch_name(e->right->reg),
@@ -293,22 +308,22 @@ void expr_codegen(Expr* e) {
 
             switch (e->kind) {
                 case EXPR_CMP_EQUAL:
-                    fprintf(output_file, "JE %s\n", label_name(top_label));
+                    fprintf(output_file, "JE %s\n", top_label);
                     break;
                 case EXPR_CMP_NOT_EQUAL:
-                    fprintf(output_file, "JNE %s\n", label_name(top_label));
+                    fprintf(output_file, "JNE %s\n", top_label);
                     break;
                 case EXPR_CMP_GT:
-                    fprintf(output_file, "JG %s\n", label_name(top_label));
+                    fprintf(output_file, "JG %s\n", top_label);
                     break;
                 case EXPR_CMP_GT_EQUAL:
-                    fprintf(output_file, "JGE %s\n", label_name(top_label));
+                    fprintf(output_file, "JGE %s\n", top_label);
                     break;
                 case EXPR_CMP_LT:
-                    fprintf(output_file, "JL %s\n", label_name(top_label));
+                    fprintf(output_file, "JL %s\n", top_label);
                     break;
                 case EXPR_CMP_LT_EQUAL:
-                    fprintf(output_file, "JLE %s\n", label_name(top_label));
+                    fprintf(output_file, "JLE %s\n", top_label);
                     break;
                 default:
                     // unreachable because of outer switch
@@ -316,40 +331,55 @@ void expr_codegen(Expr* e) {
             }
 
             fprintf(output_file, "MOVQ $0, %s\n", scratch_name(e->right->reg));
-            fprintf(output_file, "JMP %s\n", label_name(end_label));
-            fprintf(output_file, "%s:\n", label_name(top_label));
+            fprintf(output_file, "JMP %s\n", end_label);
+            fprintf(output_file, "%s:\n", top_label);
 
             fprintf(output_file, "MOVQ $1, %s\n", scratch_name(e->right->reg));
-            fprintf(output_file, "%s:\n", label_name(end_label));
+            fprintf(output_file, "%s:\n", end_label);
 
             scratch_free(e->left->reg);
             e->reg = e->right->reg;
+
+            free((void*) top_label);
+            free((void*) end_label);
         } break;
 
         // assignments
-        case EXPR_ASSIGN:
+        case EXPR_ASSIGN: {
+            const char* symbol = symbol_codegen(e->left->symbol);
+
             expr_codegen(e->right);
             fprintf(output_file, "MOVQ %s, %s\n",
                     scratch_name(e->right->reg),
-                    symbol_codegen(e->left->symbol));
+                    symbol);
             e->reg = e->right->reg;
-            break;
-        case EXPR_INCREMENT:
+
+            free((void*) symbol);
+        } break;
+        case EXPR_INCREMENT: {
+            const char* symbol = symbol_codegen(e->left->symbol);
+
             expr_codegen(e->left);
             fprintf(output_file, "INC %s\n", scratch_name(e->left->reg));
             fprintf(output_file, "MOVQ %s, %s\n",
                     scratch_name(e->left->reg),
-                    symbol_codegen(e->left->symbol));
+                    symbol);
             e->reg = e->left->reg;
-            break;
-        case EXPR_DECREMENT:
+
+            free((void*) symbol);
+        } break;
+        case EXPR_DECREMENT: {
+            const char* symbol = symbol_codegen(e->left->symbol);
+
             expr_codegen(e->left);
             fprintf(output_file, "DEC %s\n", scratch_name(e->left->reg));
             fprintf(output_file, "MOVQ %s, %s\n",
                     scratch_name(e->left->reg),
-                    symbol_codegen(e->left->symbol));
+                    symbol);
             e->reg = e->left->reg;
-            break;
+
+            free((void*) symbol);
+        } break;
 
         // misc.
         case EXPR_CALL: {
@@ -433,27 +463,30 @@ void stmt_codegen(Stmt* s) {
             scratch_free(s->expr->reg);
             break;
         case STMT_IF_ELSE: {
-            int else_label = label_create();
-            int done_label = label_create();
+            const char* else_label = label_name(label_create());
+            const char* done_label = label_name(label_create());
 
             // condition expr
             expr_codegen(s->expr);
             fprintf(output_file, "CMP $0, %s\n", scratch_name(s->expr->reg));
             scratch_free(s->expr->reg);
-            fprintf(output_file, "JE %s\n", label_name(else_label));
+            fprintf(output_file, "JE %s\n", else_label);
 
             // if branch
             stmt_codegen(s->body);
-            fprintf(output_file, "JMP %s\n", label_name(done_label));
+            fprintf(output_file, "JMP %s\n", done_label);
 
             // else branch
-            fprintf(output_file, "%s:\n", label_name(else_label));
+            fprintf(output_file, "%s:\n", else_label);
             stmt_codegen(s->else_body);
-            fprintf(output_file, "%s:\n", label_name(done_label));
+            fprintf(output_file, "%s:\n", done_label);
+
+            free((void*) else_label);
+            free((void*) done_label);
         } break;
         case STMT_FOR: {
-            int top_label = label_create();
-            int done_label = label_create();
+            const char* top_label  = label_name(label_create());
+            const char* done_label = label_name(label_create());
 
             // init expr
             if (s->init_expr) {
@@ -461,14 +494,14 @@ void stmt_codegen(Stmt* s) {
                 scratch_free(s->init_expr->reg);
             }
 
-            fprintf(output_file, "%s:\n", label_name(top_label));
+            fprintf(output_file, "%s:\n", top_label);
 
             // condition expr
             if (s->expr) {
                 expr_codegen(s->expr);
                 fprintf(output_file, "CMP $0, %s\n", scratch_name(s->expr->reg));
                 scratch_free(s->expr->reg);
-                fprintf(output_file, "JE %s\n", label_name(done_label));
+                fprintf(output_file, "JE %s\n", done_label);
             }
 
             // body
@@ -479,9 +512,12 @@ void stmt_codegen(Stmt* s) {
                 expr_codegen(s->next_expr);
                 scratch_free(s->next_expr->reg);
             }
-            fprintf(output_file, "JMP %s\n", label_name(top_label));
+            fprintf(output_file, "JMP %s\n", top_label);
 
-            fprintf(output_file, "%s:\n", label_name(done_label));
+            fprintf(output_file, "%s:\n", done_label);
+
+            free((void*) top_label);
+            free((void*) done_label);
         } break;
         case STMT_PRINT: {
             
@@ -521,22 +557,26 @@ void stmt_codegen(Stmt* s) {
                 expr_codegen(current_arg->left);
                 switch (current_arg->left->type->kind) {
                     case TYPE_BOOLEAN: {
-                        int else_label = label_create();
-                        int end_label = label_create();
+                        const char* else_label = label_name(label_create());
+                        const char* end_label  = label_name(label_create());
+
                         fprintf(output_file, "CMP $0, %s\n",
                                 scratch_name(current_arg->left->reg));
                         fprintf(output_file, "JE %s\n",
-                                label_name(else_label));
+                                else_label);
 
                         fprintf(output_file, "LEAQ .__STR_TRUE(%%rip), %s\n",
                                 scratch_name(current_arg->left->reg));
-                        fprintf(output_file, "JMP %s\n", label_name(end_label));
+                        fprintf(output_file, "JMP %s\n", end_label);
 
-                        fprintf(output_file, "%s:\n", label_name(else_label));
+                        fprintf(output_file, "%s:\n", else_label);
                         fprintf(output_file, "LEAQ .__STR_FALSE(%%rip), %s\n",
                                 scratch_name(current_arg->left->reg));
 
-                        fprintf(output_file, "%s:\n", label_name(end_label));
+                        fprintf(output_file, "%s:\n", end_label);
+
+                        free((void*) else_label);
+                        free((void*) end_label);
                     } break;
                     case TYPE_CHAR:
                         break;
@@ -574,14 +614,15 @@ void stmt_codegen(Stmt* s) {
                         argument_registers[i+1]);
             }
 
+            const char* format_string_label = label_name(label_create());
+
             fprintf(output_file, ".data\n");
-            int format_string_label = label_create();
-            fprintf(output_file, "%s:\n", label_name(format_string_label));
+            fprintf(output_file, "%s:\n", format_string_label);
             fprintf(output_file, "\t.string \"%s\"\n", format_string);
             fprintf(output_file, ".text\n");
 
             fprintf(output_file, "LEAQ %s(%%rip), %s\n",
-                    label_name(format_string_label), argument_registers[0]);
+                    format_string_label, argument_registers[0]);
 
             fprintf(output_file, "XOR %%rax, %%rax\n");
 
@@ -593,6 +634,8 @@ void stmt_codegen(Stmt* s) {
 
             fprintf(output_file, "POPQ %%r11\n");
             fprintf(output_file, "POPQ %%r10\n");
+
+            free((void*) format_string_label);
         } break;
         case STMT_RETURN:
             expr_codegen(s->expr);
@@ -683,10 +726,11 @@ void decl_codegen(Decl* d) {
             break;
         case TYPE_STRING:
             if (d->symbol->kind == SYMBOL_GLOBAL) {
-                int label = label_create();
+                const char* label = label_name(label_create());
+
                 fprintf(output_file, ".global %s\n", d->symbol->name);
                 fprintf(output_file, ".data\n");
-                fprintf(output_file, "%s:\n", label_name(label));
+                fprintf(output_file, "%s:\n", label);
                 const char* init_value = "";
                 if (d->value) {
                     init_value = d->value->string_literal;
@@ -694,15 +738,17 @@ void decl_codegen(Decl* d) {
                 fprintf(output_file, "\t.string \"%s\"\n", init_value);
 
                 fprintf(output_file, "%s:\n", d->symbol->name);
-                fprintf(output_file, "\t.quad %s\n", label_name(label));
+                fprintf(output_file, "\t.quad %s\n", label);
 
                 fprintf(output_file, ".text\n\n");
+
+                free((void*) label);
             } else {
                 int reg = scratch_alloc();
-                int label = label_create();
+                const char* label = label_name(label_create());
 
                 fprintf(output_file, ".data\n");
-                fprintf(output_file, "%s:\n", label_name(label));
+                fprintf(output_file, "%s:\n", label);
                 const char* init_value = "";
                 if (d->value) {
                     init_value = d->value->string_literal;
@@ -711,9 +757,14 @@ void decl_codegen(Decl* d) {
 
                 fprintf(output_file, ".text\n\n");
                 fprintf(output_file, "LEAQ %s(%%rip), %s\n",
-                        label_name(label), scratch_name(reg));
+                        label, scratch_name(reg));
+
+                const char* symbol = symbol_codegen(d->symbol);
                 fprintf(output_file, "MOVQ %s, %s\n",
-                        scratch_name(reg), symbol_codegen(d->symbol));
+                        scratch_name(reg), symbol);
+
+                free((void*) label);
+                free((void*) symbol);
             }
             break;
         case TYPE_BOOLEAN:
@@ -748,13 +799,16 @@ void decl_codegen(Decl* d) {
                 fprintf(output_file, "\t.quad %d\n", init_value);
                 fprintf(output_file, ".text\n\n");
             } else {
+                const char* symbol = symbol_codegen(d->symbol);
                 expr_codegen(d->value);
                 //printf("d->value->reg is %d, d->symbol->name is %s\n", d->value, d->symbol->name);
                 fprintf(output_file,
                     "MOVQ %s, %s\n",
-                    scratch_name(d->value->reg), symbol_codegen(d->symbol)
+                    scratch_name(d->value->reg), symbol
                 );
+
                 scratch_free(d->value->reg);
+                free((void*) symbol);
             }
             break;
         case TYPE_VOID:

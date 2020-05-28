@@ -17,51 +17,51 @@ main: function integer () = {
     print "global_integer should be 12345, is: ", global_integer, "\n";
     print "global_boolean should be true, is: ", global_boolean, "\n";
     print "global_character should be 'x', is: '", global_character, "'\n";
-    print "global_string should be 'Hello, Word', is: ", global_string, "\n\n";
+    print "global_string should be 'Hello, World', is: '", global_string, "'\n\n";
 
     // test comparison operators
-    print "100 == 100? ", 100 == 100, " \n";
-    print "100 == 99? ", 100 == 99, " \n\n";
+    print "100 == 100. should be true, is: ", 100 == 100, " \n";
+    print "100 == 99. should be false, is: ", 100 == 99, " \n\n";
 
-    print "100 != 100? ", 100 != 100, " \n";
-    print "100 != 99? ", 100 != 99, " \n\n";
+    print "100 != 100. should be false, is: ", 100 != 100, " \n";
+    print "100 != 99. should be true, is: ", 100 != 99, " \n\n";
 
-    print "5 > 10? ", 5 > 10, " \n";
-    print "10 > 5? ", 10 > 5, " \n\n";
+    print "5 > 10. should be false, is: ", 5 > 10, " \n";
+    print "10 > 5. should be true, is: ", 10 > 5, " \n\n";
 
-    print "5 >= 5? ", 5 >= 5, " \n";
-    print "4 >= 5? ", 4 >= 5, " \n\n";
+    print "5 >= 5. should be true, is: ", 5 >= 5, " \n";
+    print "4 >= 5. should be false, is: ", 4 >= 5, " \n\n";
 
-    print "5 < 10? ", 5 < 10, " \n";
-    print "10 < 5? ", 10 < 5, " \n\n";
+    print "5 < 10. should be true, is: ", 5 < 10, " \n";
+    print "10 < 5. should be false, is: ", 10 < 5, " \n\n";
 
-    print "5 <= 5? ", 5 <= 5, " \n";
-    print "5 <= 6? ", 5 <= 6, " \n\n";
+    print "5 <= 5. should be true, is: ", 5 <= 5, " \n";
+    print "5 <= 6. should be true, is: ", 5 <= 6, " \n\n";
 
     // test logical operators
-    print "!true is: ", !true, "\n";
-    print "!false is: ", !false, "\n";
-    print "!!true is: ", !!true, "\n\n";
+    print "!true. should be false, is: ", !true, "\n";
+    print "!false. should be true, is: ", !false, "\n";
+    print "!!true. should be true, is: ", !!true, "\n\n";
 
-    print "false || false is: ", false || false, "\n";
-    print "false || true is: ", false || true, "\n";
-    print "true || false is: ", true || false, "\n";
-    print "true || true is: ", true || true, "\n\n";
+    print "false || false. should be false is: ", false || false, "\n";
+    print "false || true. should be true, is: ", false || true, "\n";
+    print "true || false. should be true, is: ", true || false, "\n";
+    print "true || true. should be true, is: ", true || true, "\n\n";
 
-    print "false && false is: ", false && false, "\n";
-    print "false && true is: ", false && true, "\n";
-    print "true && false is: ", true && false, "\n";
-    print "true && true is: ", true && true, "\n\n";
+    print "false && false. should be false, is: ", false && false, "\n";
+    print "false && true. should be false, is: ", false && true, "\n";
+    print "true && false. should be false is: ", true && false, "\n";
+    print "true && true. should be true, is: ", true && true, "\n\n";
 
     // test arithmetic operators
-    print "-10 == ", -10, "\n";
-    print "-(-10) == ", -(-10), "\n\n";
+    print "-10. should be -10, is: ", -10, "\n";
+    print "-(-10). should be 10, is: ", -(-10), "\n\n";
 
-    print "testing 1 + 1, should be 2, is: ", 1 + 1, "\n";
-    print "testing 100 - 70, should be 30, is: ", 100 - 70, "\n";
-    print "testing 7 * 42, should be 294, is: ", 294, "\n";
-    print "testing 8 / 3, should be 2, is: ", 8 / 3, "\n";
-    print "testing -21 % 6, should be -3, is: ", -21 % 6, "\n\n";
+    print "1 + 1, should be 2, is: ", 1 + 1, "\n";
+    print "100 - 70, should be 30, is: ", 100 - 70, "\n";
+    print "7 * 42, should be 294, is: ", 294, "\n";
+    print "8 / 3, should be 2, is: ", 8 / 3, "\n";
+    print "-21 % 6, should be -3, is: ", -21 % 6, "\n\n";
 
     // test local variable declarations
     local_integer: integer = 54321;
@@ -74,16 +74,27 @@ main: function integer () = {
     print "local_character. should be: 'Y', is: '", local_character, "'\n";
     print "local_string. should be: 'dlroW, olleH', is: '", local_string, "'\n\n";
 
-    // testing assignment
+    // testing assignment on local variables
     local_integer = 1;
     local_boolean = true;
     local_character = 'H';
-    local_string = "Assignment";
+    local_string = "Local Assignment";
 
     print "local_integer: should now be: 1, is: ", local_integer, "\n";
     print "local_boolean: should now be: true, is: ", local_boolean, "\n";
     print "local_character: should now be: 'H', is: '", local_character, "'\n";
-    print "local_string: should now be: 'Assignment', is: '", local_string, "'\n\n";
+    print "local_string: should now be: 'Local Assignment', is: '", local_string, "'\n\n";
+
+    // testing assignment on global variables
+    global_integer = 256;
+    global_boolean = false;
+    global_character = 's';
+    global_string = "Global Assignment";
+
+    print "global_integer should be 256, is: ", global_integer, "\n";
+    print "global_boolean should be false, is: ", global_boolean, "\n";
+    print "global_character should be 's', is: '", global_character, "'\n";
+    print "global_string should be 'Global Assignment', is: '", global_string, "'\n\n";
 
     // testing increment and decrement operators
     local_integer++;

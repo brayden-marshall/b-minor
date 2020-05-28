@@ -79,7 +79,7 @@ int main(int argc, char** argv) {
     // codegen
     codegen(parser_result, "output.s");
 
-    decl_delete(parser_result);
+    //decl_delete(parser_result);
     fclose(yyin);
     return EXIT_SUCCESS;
 }
