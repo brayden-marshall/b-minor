@@ -34,9 +34,7 @@ void scope_enter() {
     // only create a new hash table if the slot in the underlying array is null
     // if it is non-null, it means there is an empty hash_table there and there is no
     // need to allocate another
-    if (!scope_stack[scope_stack_top]) {
-        scope_stack[scope_stack_top] = hash_table_create(0, 0);
-    }
+    scope_stack[scope_stack_top] = hash_table_create(0, 0);
     scope_stack_local_var_counts[scope_stack_top] = 0;
 }
 
@@ -47,7 +45,8 @@ void scope_exit() {
         exit(1);
     }
 
-    hash_table_clear(scope_stack[scope_stack_top]);
+    hash_table_delete(scope_stack[scope_stack_top]);
+    scope_stack[scope_stack_top] = NULL;
     scope_stack_top--;
 }
 

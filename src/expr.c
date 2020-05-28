@@ -2,6 +2,7 @@
 #include <stdio.h>
 
 #include "expr.h"
+#include "type.h"
 
 Expr* expr_create(Expr_t kind, Expr* left, Expr* right) {
     Expr* e = malloc(sizeof(Expr));
@@ -23,6 +24,7 @@ void expr_delete(Expr* e) {
     expr_delete(e->left);
     expr_delete(e->right);
     free((void*)e->string_literal);
+    type_delete(e->type);
 
     free(e);
 }

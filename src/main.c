@@ -72,6 +72,7 @@ int main(int argc, char** argv) {
         printf("Error(s) encountered when resolving symbols. Exiting...\n");
         exit(1);
     }
+    hash_table_delete(scope_stack[0]);
 
     // typechecking
     decl_typecheck(parser_result);
@@ -79,7 +80,7 @@ int main(int argc, char** argv) {
     // codegen
     codegen(parser_result, "output.s");
 
-    //decl_delete(parser_result);
+    decl_delete(parser_result);
     fclose(yyin);
     return EXIT_SUCCESS;
 }
