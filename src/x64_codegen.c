@@ -80,6 +80,7 @@ const char* symbol_codegen(Symbol* s) {
 
     if (s->kind == SYMBOL_GLOBAL) {
         name = s->name;
+        sprintf(name, "%s(%%rip)", s->name);
     } else if (s->kind == SYMBOL_LOCAL) {
         // (s->which+1) here to convert from zero-based
         int offset = (s->which+1)*8;
@@ -682,13 +683,19 @@ void decl_codegen(Decl* d) {
             break;
         case TYPE_STRING:
             if (d->symbol->kind == SYMBOL_GLOBAL) {
+                int label = label_create();
+                fprintf(output_file, ".global %s\n", d->symbol->name);
                 fprintf(output_file, ".data\n");
-                fprintf(output_file, "%s:\n", symbol_codegen(d->symbol));
+                fprintf(output_file, "%s:\n", label_name(label));
                 const char* init_value = "";
                 if (d->value) {
                     init_value = d->value->string_literal;
                 }
                 fprintf(output_file, "\t.string \"%s\"\n", init_value);
+
+                fprintf(output_file, "%s:\n", d->symbol->name);
+                fprintf(output_file, "\t.quad %s\n", label_name(label));
+
                 fprintf(output_file, ".text\n\n");
             } else {
                 int reg = scratch_alloc();
@@ -733,7 +740,7 @@ void decl_codegen(Decl* d) {
 
             if (d->symbol->kind == SYMBOL_GLOBAL) {
                 fprintf(output_file, ".data\n");
-                fprintf(output_file, "%s:\n", symbol_codegen(d->symbol));
+                fprintf(output_file, "%s:\n", d->symbol->name);
                 int init_value = 0;
                 if (d->value) {
                     init_value = d->value->integer_value;

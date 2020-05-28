@@ -1,7 +1,7 @@
 global_integer: integer = 12345;
 global_boolean: boolean = true;
 global_character: char = 'x';
-global_string: string = "Hello, World!";
+global_string: string = "Hello, World";
 
 func_many_args: function integer (
     a: integer, b: integer, c: integer, d: integer, e: integer,
@@ -13,6 +13,12 @@ func_many_args: function integer (
 }
 
 main: function integer () = {
+    // testing global variables
+    print "global_integer should be 12345, is: ", global_integer, "\n";
+    print "global_boolean should be true, is: ", global_boolean, "\n";
+    print "global_character should be 'x', is: '", global_character, "'\n";
+    print "global_string should be 'Hello, Word', is: ", global_string, "\n\n";
+
     // test comparison operators
     print "100 == 100? ", 100 == 100, " \n";
     print "100 == 99? ", 100 == 99, " \n\n";
