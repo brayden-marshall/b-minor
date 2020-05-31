@@ -1,12 +1,10 @@
 ## TODO
 
 - for some expressions we are only allowing raw identifiers (such as increment and decrement). should we allow more complex expressions yet?
-
 - switch to CMake instead of the crusty Makefile we currently have
-
 - Create a routine to output the AST into Graphiz DOT notation (or some other visual representation)
-
 - proper typechecking when assigning to an empty initializer list
+- modify code generation so it can be passed directly to 'ld' rather than using gcc
 
 ## Operator Precedence Table
 

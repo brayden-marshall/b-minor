@@ -447,6 +447,29 @@ void expr_codegen(Expr* e) {
             break;
         case EXPR_SUBSCRIPT:
             printf("FIXME: codegen EXPR_SUBSCRIPT unimplemented.\n");
+            // generate code for the index expression
+            expr_codegen(e->right);
+
+            int base_reg = scratch_alloc();
+            const char* base_reg_name = scratch_name(base_reg);
+            const char* index_reg_name = scratch_name(e->right->reg);
+
+            // load address of the array
+            fprintf(output_file, "LEAQ %s, %s\n",
+                    symbol_codegen(e->left->symbol),
+                    base_reg_name);
+            
+            // move the indexed value into a register
+            fprintf(output_file, "MOVQ 0(%s, %s, 8), %s\n",
+                    base_reg_name,
+                    index_reg_name,
+                    index_reg_name);
+
+            e->reg = e->right->reg;
+            // free scratch register and allocated string
+            scratch_free(base_reg);
+            //free((void*) base_reg_name);
+            //free((void*) index_reg_name);
             break;
     }
 }
@@ -722,7 +745,65 @@ void decl_codegen(Decl* d) {
             break;
         case TYPE_ARRAY:
             // FIXME: incomplete
-            fprintf(output_file, "FIXME: codegen for TYPE_ARRAY unimplemented.\n");
+            printf("FIXME: codegen for TYPE_ARRAY unimplemented.\n");
+            if (d->symbol->kind == SYMBOL_GLOBAL) {
+                fprintf(output_file, ".global %s\n", d->symbol->name);
+                fprintf(output_file, ".data\n");
+                fprintf(output_file, "%s:\n", d->symbol->name);
+
+                int size = -1;
+                // should always be integer literal if it passes typechecking
+                if (d->type->size_expr) {
+                    size = d->type->size_expr->integer_value;
+                }
+
+                if (d->value) {
+                    int init_list_length = 0;
+                    Expr* element = d->value->right;
+
+                    while (element != NULL) {
+                        if (init_list_length >= size) {
+                            break;
+                        }
+
+                        switch (element->left->type->kind) {
+                            case TYPE_BOOLEAN:
+                            case TYPE_CHAR:
+                            case TYPE_INTEGER:
+                                fprintf(output_file,
+                                    "\t.quad %d\n",
+                                    element->left->integer_value
+                                );
+                                break;
+                            case TYPE_STRING:
+                                printf("FIXME: Array of string is not implemented.\n");
+                                break;
+                            case TYPE_ARRAY:
+                                printf("FIXME: Multi-dimensional arrays are not implemented.\n");
+                                break;
+                            default:
+                                break;
+                        }
+
+                        element = element->right;
+                        init_list_length++;
+                    }
+
+                    if (init_list_length < size) {
+                        fprintf(
+                            output_file,
+                            "\t.zero %d\n",
+                            (size - init_list_length) * 8
+                        );
+                    }
+                } else {
+                    fprintf(output_file, ".zero %d\n", size * 8);
+                }
+            } else {
+                const char* label = label_name(label_create());
+
+                free((void*) label);
+            }
             break;
         case TYPE_STRING:
             if (d->symbol->kind == SYMBOL_GLOBAL) {

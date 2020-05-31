@@ -23,6 +23,7 @@ extern int yylex();
 extern FILE* yyin;
 
 int scope_error = 0;
+int type_error = 0;
 
 struct hash_table* scope_stack[SCOPE_STACK_MAX];
 
@@ -76,6 +77,10 @@ int main(int argc, char** argv) {
 
     // typechecking
     decl_typecheck(parser_result);
+    if (type_error != 0) {
+        printf("Error(s) encountered when typechecking. Exiting...\n");
+        exit(1);
+    }
 
     // codegen
     codegen(parser_result, "output.s");

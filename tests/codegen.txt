@@ -3,6 +3,8 @@ global_boolean: boolean = true;
 global_character: char = 'x';
 global_string: string = "Hello, World";
 
+global_array: array [10] integer = {1, 2, 3};
+
 func_many_args: function integer (
     a: integer, b: integer, c: integer, d: integer, e: integer,
     f: integer, g: integer, h: integer, i: integer, j: integer,
@@ -68,6 +70,7 @@ main: function integer () = {
     local_boolean: boolean = false;
     local_character: char = 'Y';
     local_string: string = "dlroW, olleH";
+    local_array: array [] integer = {local_integer};
 
     print "local_integer. should be: 54321, is: ", local_integer, "\n";
     print "local_boolean. should be: false, is: ", local_boolean, "\n";
@@ -103,16 +106,21 @@ main: function integer () = {
     local_integer--;
     print "local_integer-- should be 1, is: ", local_integer--, "\n\n";
 
-    // test function call
+    // testing array subscript
+    print "global_array[0], should be 1, is: ", global_array[0], "\n";
+
+    // testing function calls
     function_call: integer = func_many_args(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
     print "function_call should be: 55, is ", function_call, "\n";
 
-    // print statement
+    // testing print statement
     print false, " hello world\n";
 
     print 'c', "\n";
 
     print 100*1, " ", true, "\n";
+
+    print "global_array is: ", global_array, "\n";
 
     // testing if/else
     if (true) {
@@ -128,8 +136,8 @@ main: function integer () = {
 
     // testing for loops
     print "testing loop\n";
-    i: integer = 0;
-    for (; i < 10; i = i + 1) {
+    i: integer;
+    for (i = 0; i < 10; i = i + 1) {
         print "\t i is: ", i * i, "\n";
     }
 }
