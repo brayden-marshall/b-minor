@@ -446,7 +446,6 @@ void expr_codegen(Expr* e) {
             e->reg = e->left->reg;
             break;
         case EXPR_SUBSCRIPT:
-            printf("FIXME: codegen EXPR_SUBSCRIPT unimplemented.\n");
             // generate code for the index expression
             expr_codegen(e->right);
 

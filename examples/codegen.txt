@@ -114,15 +114,15 @@ main: function integer () = {
     print "function_call should be: 55, is ", function_call, "\n";
 
     // testing print statement
-    print false, " hello world\n";
-
-    print 'c', "\n";
-
-    print 100*1, " ", true, "\n";
-
-    print "global_array is: ", global_array, "\n";
+    print "testing print statements:\n";
+    print "\t", false, " hello world\n";
+    print "\t", 'c', "\n";
+    print "\t", 100*1, " ", true, "\n";
+    print "\t", "global_array is: ", global_array, "\n\n";
 
     // testing if/else
+    print "testing if statements.\n";
+    print "if should be true, inner if should be false\n";
     if (true) {
         print "if is ", true, "\n";
         if (false) {
@@ -133,11 +133,12 @@ main: function integer () = {
     } else {
         print "if is ", false, "\n";
     }
+    print "\n";
 
     // testing for loops
-    print "testing loop\n";
+    print "testing loop, should print square numbers up to 81\n";
     i: integer;
-    for (i = 0; i < 10; i = i + 1) {
+    for (i = 0; i < 10; i++) {
         print "\t i is: ", i * i, "\n";
     }
 }

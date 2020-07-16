@@ -1,4 +1,8 @@
-## TODO
+# B-Minor Compiler
+
+My implementation of the compiler from the book _Introduction to Compilers and Language Design_ by Douglas Thain ([here](https://www3.nd.edu/~dthain/compilerbook))
+
+## TODO/Issues
 
 - for some expressions we are only allowing raw identifiers (such as increment and decrement). should we allow more complex expressions yet?
 - switch to CMake instead of the crusty Makefile we currently have
